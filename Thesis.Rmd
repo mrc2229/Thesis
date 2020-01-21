@@ -1,0 +1,51 @@
+---
+title: "Thesis"
+author: "Matthew Curran"
+date: "January 15, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(janitor)
+library(rvest)
+library(viridis)
+library(broom)
+library(knitr)
+library(foreign)
+library(Hmisc)
+```
+
+# Data from NHANES
+
+```{r alcohol data, echo=FALSE}
+alc_data = sasxport.get("./data/ALQ_I.XPT")
+write.csv(alc_data, file="ALQ_I.csv") 
+
+alc_data = alc_data %>%
+  janitor::clean_names() %>%
+  select(seqn, alq160) %>%
+  drop_na()
+```
+
+```{r sleep data, echo=FALSE}
+sleep_data = sasxport.get("./data/SLQ_I.XPT")
+write.csv(sleep_data, file="SLQ_I.csv")
+
+sleep_data = sleep_data %>%
+  janitor::clean_names() %>%
+  select(seqn, slq040) %>%
+  drop_na()
+```
+
+```{r demographic data, echo=FALSE}
+demo_data = sasxport.get("./data/Demo_I.XPT")
+write.csv(demo_data, file="DEMO_I.csv")
+```
+
+```{r}
+thesis_data = 
+  left_join(alc_data, sleep_data, by = "seqn")
+```
+
+
