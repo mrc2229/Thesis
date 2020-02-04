@@ -24,8 +24,7 @@ write.csv(alc_data, file="ALQ_I.csv")
 
 alc_data = alc_data %>%
   janitor::clean_names() %>%
-  select(seqn, alq160) %>%
-  drop_na()
+  select(seqn, alq160, alq101)
 ```
 
 ```{r sleep data, echo=FALSE}
@@ -34,18 +33,96 @@ write.csv(sleep_data, file="SLQ_I.csv")
 
 sleep_data = sleep_data %>%
   janitor::clean_names() %>%
-  select(seqn, slq040) %>%
-  drop_na()
+  select(seqn, slq040)
 ```
 
 ```{r demographic data, echo=FALSE}
 demo_data = sasxport.get("./data/Demo_I.XPT")
 write.csv(demo_data, file="DEMO_I.csv")
+
+demo_data = demo_data %>%
+  janitor::clean_names()%>%
+  select(seqn, riagendr, ridageyr, ridreth3, dmdeduc3, dmdeduc2, indhhin2, indfmin2)
 ```
 
-```{r}
+```{r make final dataset}
 thesis_data = 
   left_join(alc_data, sleep_data, by = "seqn")
+
+thesis_data_demo = 
+  left_join(thesis_data, demo_data, by = "seqn")
 ```
 
+```{r data cleaning}
+thesis_data_demo_clean = thesis_data_demo %>%
+  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2) %>%
+  filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24| age == 25) %>%
+  mutate(education = coalesce(education_20, education_19)) %>%
+  select(-education_19,-education_20) %>%
+  mutate(binge_drinker=as.numeric(binge_drinker)) %>%
+  mutate(binge_drinker =
+         recode(binge_drinker,
+           "0" = "No",
+           "1" = "Yes",
+           "2" = "Yes",
+           "3" = "Yes",
+           "4" = "Yes",
+           "5" = "Yes",
+           "6" = "Yes",
+           "7" = "Yes",
+           "8" = "Yes",
+           "9" = "Yes",
+           "10" = "Yes",
+           "11" = "Yes",
+           "12" = "Yes",
+           "13" = "Yes",
+           "14" = "Yes",
+           "15" = "Yes",
+           "16" = "Yes",
+           "17" = "Yes",
+           "18" = "Yes",
+           "20" = "Yes",
+           "777" = "Refused",
+           "999" = "Don't Know"
+         )) %>%
+   mutate(drinker=as.numeric(drinker)) %>%
+   mutate(drinker =
+         recode(drinker,
+           "1" = "Yes",
+           "2" = "No",
+           "7" = "Refused",
+           "9" = "Don't Know"
+         )) %>%
+   mutate(apnea=as.numeric(apnea)) %>%
+   mutate(apnea =
+         recode(apnea,
+           "0" = "No",
+           "1" = "No",
+           "2" = "Yes",
+           "3" = "Yes",
+           "7" = "Refused",
+           "9" = "Don't Know"
+         )) %>%
+   mutate(gender=as.numeric(gender)) %>%
+   mutate(gender =
+         recode(gender,
+           "1" = "Male",
+           "2" = "Female"
+         ))%>%
+   mutate(race=as.numeric(race)) %>%
+   mutate(race =
+         recode(race,
+           "1" = "Mexican American",
+           "2" = "Other Hispanic",
+           "3" = "White",
+           "4" = "Black",
+           "5" = "Other Race or Multi-Racial"
+         ))
+```
+
+```{r table 1 making}
+library(htmlTable)
+
+table1(~ factor(gender) + factor(age) + factor(race) | drinker, data=thesis_data_demo_clean)
+```
 
