@@ -129,7 +129,8 @@ thesis_data_demo_clean = thesis_data_demo %>%
            "2" = "Other Hispanic",
            "3" = "White",
            "4" = "Black",
-           "5" = "Other Race or Multi-Racial"
+           "6" = "Asian",
+           "7" = "Other Race or Multi-Racial"
          )) %>%
    mutate(martstat=as.numeric(martstat)) %>%
    mutate(martstat =
@@ -150,7 +151,8 @@ thesis_data_demo_clean = thesis_data_demo %>%
            "2" = "No",
            "7" = "Refused",
            "9" = "Don't Know"
-         ))
+         )) %>%
+  filter(drinker != "Don't Know")
 ```
 
 ```{r table 1 making, results='asis'}
