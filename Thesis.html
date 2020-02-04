@@ -191,7 +191,411 @@ summary {
 <pre><code>## Processing SAS dataset SLQ_I      ..</code></pre>
 <pre><code>## Processing SAS dataset DEMO_I     ..</code></pre>
 <pre class="r"><code>thesis_data = 
-  left_join(alc_data, sleep_data, by = &quot;seqn&quot;)</code></pre>
+  left_join(alc_data, sleep_data, by = &quot;seqn&quot;)
+
+thesis_data_demo = 
+  left_join(thesis_data, demo_data, by = &quot;seqn&quot;)</code></pre>
+<pre class="r"><code>thesis_data_demo_clean = thesis_data_demo %&gt;%
+  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl) %&gt;%
+  filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24| age == 25) %&gt;%
+  mutate(education = coalesce(education_20, education_19)) %&gt;%
+  select(-education_19,-education_20) %&gt;%
+  mutate(binge_drinker=as.numeric(binge_drinker)) %&gt;%
+  mutate(binge_drinker =
+         recode(binge_drinker,
+           &quot;0&quot; = &quot;No&quot;,
+           &quot;1&quot; = &quot;Yes&quot;,
+           &quot;2&quot; = &quot;Yes&quot;,
+           &quot;3&quot; = &quot;Yes&quot;,
+           &quot;4&quot; = &quot;Yes&quot;,
+           &quot;5&quot; = &quot;Yes&quot;,
+           &quot;6&quot; = &quot;Yes&quot;,
+           &quot;7&quot; = &quot;Yes&quot;,
+           &quot;8&quot; = &quot;Yes&quot;,
+           &quot;9&quot; = &quot;Yes&quot;,
+           &quot;10&quot; = &quot;Yes&quot;,
+           &quot;11&quot; = &quot;Yes&quot;,
+           &quot;12&quot; = &quot;Yes&quot;,
+           &quot;13&quot; = &quot;Yes&quot;,
+           &quot;14&quot; = &quot;Yes&quot;,
+           &quot;15&quot; = &quot;Yes&quot;,
+           &quot;16&quot; = &quot;Yes&quot;,
+           &quot;17&quot; = &quot;Yes&quot;,
+           &quot;18&quot; = &quot;Yes&quot;,
+           &quot;20&quot; = &quot;Yes&quot;,
+           &quot;777&quot; = &quot;Refused&quot;,
+           &quot;999&quot; = &quot;Don't Know&quot;
+         )) %&gt;%
+   mutate(drinker=as.numeric(drinker)) %&gt;%
+   mutate(drinker =
+         recode(drinker,
+           &quot;1&quot; = &quot;Yes&quot;,
+           &quot;2&quot; = &quot;No&quot;,
+           &quot;7&quot; = &quot;Refused&quot;,
+           &quot;9&quot; = &quot;Don't Know&quot;
+         )) %&gt;%
+   mutate(apnea=as.numeric(apnea)) %&gt;%
+   mutate(apnea =
+         recode(apnea,
+           &quot;0&quot; = &quot;No&quot;,
+           &quot;1&quot; = &quot;No&quot;,
+           &quot;2&quot; = &quot;Yes&quot;,
+           &quot;3&quot; = &quot;Yes&quot;,
+           &quot;7&quot; = &quot;Refused&quot;,
+           &quot;9&quot; = &quot;Don't Know&quot;
+         )) %&gt;%
+   mutate(gender=as.numeric(gender)) %&gt;%
+   mutate(gender =
+         recode(gender,
+           &quot;1&quot; = &quot;Male&quot;,
+           &quot;2&quot; = &quot;Female&quot;
+         ))%&gt;%
+   mutate(race=as.numeric(race)) %&gt;%
+   mutate(race =
+         recode(race,
+           &quot;1&quot; = &quot;Mexican American&quot;,
+           &quot;2&quot; = &quot;Other Hispanic&quot;,
+           &quot;3&quot; = &quot;White&quot;,
+           &quot;4&quot; = &quot;Black&quot;,
+           &quot;5&quot; = &quot;Other Race or Multi-Racial&quot;
+         )) %&gt;%
+   mutate(martstat=as.numeric(martstat)) %&gt;%
+   mutate(martstat =
+         recode(martstat,
+           &quot;1&quot; = &quot;Married&quot;,
+           &quot;2&quot; = &quot;Widowed&quot;,
+           &quot;3&quot; = &quot;Divorced&quot;,
+           &quot;4&quot; = &quot;Separated&quot;,
+           &quot;5&quot; = &quot;Never Married&quot;,
+           &quot;6&quot; = &quot;Living with Partner&quot;,
+           &quot;77&quot; = &quot;Refused&quot;,
+           &quot;99&quot; = &quot;Don't Know&quot;
+         ))</code></pre>
+<pre><code>## Warning: Unreplaced values treated as NA as .x is not compatible. Please
+## specify replacements exhaustively or supply .default</code></pre>
+<pre class="r"><code>library(arsenal)</code></pre>
+<pre><code>## Warning: package 'arsenal' was built under R version 3.6.2</code></pre>
+<pre><code>## 
+## Attaching package: 'arsenal'</code></pre>
+<pre><code>## The following object is masked from 'package:Hmisc':
+## 
+##     %nin%</code></pre>
+<pre class="r"><code>table_one = tableby(drinker ~age + gender + race + martstat, data=thesis_data_demo_clean)
+summary(table_one)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="center">Don’t Know (N=1)</th>
+<th align="center">No (N=280)</th>
+<th align="center">Yes (N=445)</th>
+<th align="center">Total (N=726)</th>
+<th align="right">p value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><strong>Age in years at screening</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">&lt; 0.001</td>
+</tr>
+<tr class="even">
+<td align="left">   Mean (SD)</td>
+<td align="center">22.000 (NA)</td>
+<td align="center">20.268 (2.353)</td>
+<td align="center">21.910 (2.280)</td>
+<td align="center">21.277 (2.440)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Range</td>
+<td align="center">22.000 - 22.000</td>
+<td align="center">18.000 - 25.000</td>
+<td align="center">18.000 - 25.000</td>
+<td align="center">18.000 - 25.000</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left"><strong>gender</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">0.176</td>
+</tr>
+<tr class="odd">
+<td align="left">   Female</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">152 (54.3%)</td>
+<td align="center">215 (48.3%)</td>
+<td align="center">367 (50.6%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Male</td>
+<td align="center">1 (100.0%)</td>
+<td align="center">128 (45.7%)</td>
+<td align="center">230 (51.7%)</td>
+<td align="center">359 (49.4%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>race</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">&lt; 0.001</td>
+</tr>
+<tr class="even">
+<td align="left">   N-Miss</td>
+<td align="center">0</td>
+<td align="center">59</td>
+<td align="center">69</td>
+<td align="center">128</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Black</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">75 (33.9%)</td>
+<td align="center">89 (23.7%)</td>
+<td align="center">164 (27.4%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Mexican American</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">69 (31.2%)</td>
+<td align="center">85 (22.6%)</td>
+<td align="center">154 (25.8%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Other Hispanic</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">31 (14.0%)</td>
+<td align="center">49 (13.0%)</td>
+<td align="center">80 (13.4%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   White</td>
+<td align="center">1 (100.0%)</td>
+<td align="center">46 (20.8%)</td>
+<td align="center">153 (40.7%)</td>
+<td align="center">200 (33.4%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>martstat</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">0.931</td>
+</tr>
+<tr class="even">
+<td align="left">   N-Miss</td>
+<td align="center">0</td>
+<td align="center">151</td>
+<td align="center">97</td>
+<td align="center">248</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Divorced</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">3 (0.9%)</td>
+<td align="center">3 (0.6%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Living with Partner</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">21 (16.3%)</td>
+<td align="center">60 (17.2%)</td>
+<td align="center">81 (16.9%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Married</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">18 (14.0%)</td>
+<td align="center">50 (14.4%)</td>
+<td align="center">68 (14.2%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Never Married</td>
+<td align="center">1 (100.0%)</td>
+<td align="center">89 (69.0%)</td>
+<td align="center">227 (65.2%)</td>
+<td align="center">317 (66.3%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Separated</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">1 (0.8%)</td>
+<td align="center">8 (2.3%)</td>
+<td align="center">9 (1.9%)</td>
+<td align="right"></td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>table_two = tableby(binge_drinker ~age + gender + race + martstat, data=thesis_data_demo_clean)
+summary(table_two)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="center">No (N=171)</th>
+<th align="center">Yes (N=94)</th>
+<th align="center">Total (N=265)</th>
+<th align="right">p value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><strong>Age in years at screening</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">0.488</td>
+</tr>
+<tr class="even">
+<td align="left">   Mean (SD)</td>
+<td align="center">21.988 (2.207)</td>
+<td align="center">21.787 (2.337)</td>
+<td align="center">21.917 (2.251)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Range</td>
+<td align="center">18.000 - 25.000</td>
+<td align="center">18.000 - 25.000</td>
+<td align="center">18.000 - 25.000</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left"><strong>gender</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">0.036</td>
+</tr>
+<tr class="odd">
+<td align="left">   Female</td>
+<td align="center">81 (47.4%)</td>
+<td align="center">32 (34.0%)</td>
+<td align="center">113 (42.6%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Male</td>
+<td align="center">90 (52.6%)</td>
+<td align="center">62 (66.0%)</td>
+<td align="center">152 (57.4%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>race</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">0.602</td>
+</tr>
+<tr class="even">
+<td align="left">   N-Miss</td>
+<td align="center">24</td>
+<td align="center">17</td>
+<td align="center">41</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Black</td>
+<td align="center">25 (17.0%)</td>
+<td align="center">17 (22.1%)</td>
+<td align="center">42 (18.8%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Mexican American</td>
+<td align="center">30 (20.4%)</td>
+<td align="center">19 (24.7%)</td>
+<td align="center">49 (21.9%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Other Hispanic</td>
+<td align="center">23 (15.6%)</td>
+<td align="center">10 (13.0%)</td>
+<td align="center">33 (14.7%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   White</td>
+<td align="center">69 (46.9%)</td>
+<td align="center">31 (40.3%)</td>
+<td align="center">100 (44.6%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>martstat</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">0.013</td>
+</tr>
+<tr class="even">
+<td align="left">   N-Miss</td>
+<td align="center">34</td>
+<td align="center">23</td>
+<td align="center">57</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Divorced</td>
+<td align="center">1 (0.7%)</td>
+<td align="center">2 (2.8%)</td>
+<td align="center">3 (1.4%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Living with Partner</td>
+<td align="center">25 (18.2%)</td>
+<td align="center">8 (11.3%)</td>
+<td align="center">33 (15.9%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Married</td>
+<td align="center">23 (16.8%)</td>
+<td align="center">4 (5.6%)</td>
+<td align="center">27 (13.0%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Never Married</td>
+<td align="center">83 (60.6%)</td>
+<td align="center">57 (80.3%)</td>
+<td align="center">140 (67.3%)</td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="left">   Separated</td>
+<td align="center">5 (3.6%)</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">5 (2.4%)</td>
+<td align="right"></td>
+</tr>
+</tbody>
+</table>
 </div>
 
 

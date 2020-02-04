@@ -42,7 +42,7 @@ write.csv(demo_data, file="DEMO_I.csv")
 
 demo_data = demo_data %>%
   janitor::clean_names()%>%
-  select(seqn, riagendr, ridageyr, ridreth3, dmdeduc3, dmdeduc2, indhhin2, indfmin2)
+  select(seqn, riagendr, ridageyr, ridreth3, dmdeduc3, dmdeduc2, indhhin2, indfmin2, dmdmartl)
 ```
 
 ```{r make final dataset}
@@ -55,7 +55,7 @@ thesis_data_demo =
 
 ```{r data cleaning}
 thesis_data_demo_clean = thesis_data_demo %>%
-  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2) %>%
+  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl) %>%
   filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24| age == 25) %>%
   mutate(education = coalesce(education_20, education_19)) %>%
   select(-education_19,-education_20) %>%
@@ -117,12 +117,28 @@ thesis_data_demo_clean = thesis_data_demo %>%
            "3" = "White",
            "4" = "Black",
            "5" = "Other Race or Multi-Racial"
+         )) %>%
+   mutate(martstat=as.numeric(martstat)) %>%
+   mutate(martstat =
+         recode(martstat,
+           "1" = "Married",
+           "2" = "Widowed",
+           "3" = "Divorced",
+           "4" = "Separated",
+           "5" = "Never Married",
+           "6" = "Living with Partner",
+           "77" = "Refused",
+           "99" = "Don't Know"
          ))
 ```
 
-```{r table 1 making}
-library(htmlTable)
-
-table1(~ factor(gender) + factor(age) + factor(race) | drinker, data=thesis_data_demo_clean)
+```{r table 1 making, results='asis'}
+library(arsenal)
+table_one = tableby(drinker ~age + gender + race + martstat, data=thesis_data_demo_clean)
+summary(table_one)
 ```
 
+```{r table 2 making, results='asis'}
+table_two = tableby(binge_drinker ~age + gender + race + martstat, data=thesis_data_demo_clean)
+summary(table_two)
+```
