@@ -14,6 +14,7 @@ library(broom)
 library(knitr)
 library(foreign)
 library(Hmisc)
+library(arsenal)
 ```
 
 # Data from NHANES
@@ -45,17 +46,29 @@ demo_data = demo_data %>%
   select(seqn, riagendr, ridageyr, ridreth3, dmdeduc3, dmdeduc2, indhhin2, indfmin2, dmdmartl)
 ```
 
+```{r weight data, echo=FALSE}
+weight_data = sasxport.get("./data/MCQ_I.XPT")
+write.csv(weight_data, file="MCQ_I.csv")
+
+weight_data = weight_data %>%
+  janitor::clean_names() %>%
+  select(seqn, mcq365a)
+```
+
 ```{r make final dataset}
 thesis_data = 
   left_join(alc_data, sleep_data, by = "seqn")
 
 thesis_data_demo = 
   left_join(thesis_data, demo_data, by = "seqn")
+
+thesis_data_demo = 
+  left_join(thesis_data_demo, weight_data, by = "seqn")
 ```
 
 ```{r data cleaning}
 thesis_data_demo_clean = thesis_data_demo %>%
-  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl) %>%
+  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl, overweight=mcq365a) %>%
   filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24| age == 25) %>%
   mutate(education = coalesce(education_20, education_19)) %>%
   select(-education_19,-education_20) %>%
@@ -129,16 +142,23 @@ thesis_data_demo_clean = thesis_data_demo %>%
            "6" = "Living with Partner",
            "77" = "Refused",
            "99" = "Don't Know"
+         )) %>%
+   mutate(overweight=as.numeric(overweight)) %>%
+   mutate(overweight =
+         recode(overweight,
+           "1" = "Yes",
+           "2" = "No",
+           "7" = "Refused",
+           "9" = "Don't Know"
          ))
 ```
 
 ```{r table 1 making, results='asis'}
-library(arsenal)
-table_one = tableby(drinker ~age + gender + race + martstat, data=thesis_data_demo_clean)
+table_one = tableby(drinker ~age + gender + race + martstat + overweight, data=thesis_data_demo_clean)
 summary(table_one)
 ```
 
 ```{r table 2 making, results='asis'}
-table_two = tableby(binge_drinker ~age + gender + race + martstat, data=thesis_data_demo_clean)
+table_two = tableby(binge_drinker ~age + gender + race + martstat + overweight, data=thesis_data_demo_clean)
 summary(table_two)
 ```

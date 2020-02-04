@@ -190,13 +190,17 @@ summary {
 <pre><code>## Processing SAS dataset ALQ_I      ..</code></pre>
 <pre><code>## Processing SAS dataset SLQ_I      ..</code></pre>
 <pre><code>## Processing SAS dataset DEMO_I     ..</code></pre>
+<pre><code>## Processing SAS dataset MCQ_I      ..</code></pre>
 <pre class="r"><code>thesis_data = 
   left_join(alc_data, sleep_data, by = &quot;seqn&quot;)
 
 thesis_data_demo = 
-  left_join(thesis_data, demo_data, by = &quot;seqn&quot;)</code></pre>
+  left_join(thesis_data, demo_data, by = &quot;seqn&quot;)
+
+thesis_data_demo = 
+  left_join(thesis_data_demo, weight_data, by = &quot;seqn&quot;)</code></pre>
 <pre class="r"><code>thesis_data_demo_clean = thesis_data_demo %&gt;%
-  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl) %&gt;%
+  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl, overweight=mcq365a) %&gt;%
   filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24| age == 25) %&gt;%
   mutate(education = coalesce(education_20, education_19)) %&gt;%
   select(-education_19,-education_20) %&gt;%
@@ -270,17 +274,18 @@ thesis_data_demo =
            &quot;6&quot; = &quot;Living with Partner&quot;,
            &quot;77&quot; = &quot;Refused&quot;,
            &quot;99&quot; = &quot;Don't Know&quot;
+         )) %&gt;%
+   mutate(overweight=as.numeric(overweight)) %&gt;%
+   mutate(overweight =
+         recode(overweight,
+           &quot;1&quot; = &quot;Yes&quot;,
+           &quot;2&quot; = &quot;No&quot;,
+           &quot;7&quot; = &quot;Refused&quot;,
+           &quot;9&quot; = &quot;Don't Know&quot;
          ))</code></pre>
 <pre><code>## Warning: Unreplaced values treated as NA as .x is not compatible. Please
 ## specify replacements exhaustively or supply .default</code></pre>
-<pre class="r"><code>library(arsenal)</code></pre>
-<pre><code>## Warning: package 'arsenal' was built under R version 3.6.2</code></pre>
-<pre><code>## 
-## Attaching package: 'arsenal'</code></pre>
-<pre><code>## The following object is masked from 'package:Hmisc':
-## 
-##     %nin%</code></pre>
-<pre class="r"><code>table_one = tableby(drinker ~age + gender + race + martstat, data=thesis_data_demo_clean)
+<pre class="r"><code>table_one = tableby(drinker ~age + gender + race + martstat + overweight, data=thesis_data_demo_clean)
 summary(table_one)</code></pre>
 <table>
 <thead>
@@ -446,9 +451,33 @@ summary(table_one)</code></pre>
 <td align="center">9 (1.9%)</td>
 <td align="right"></td>
 </tr>
+<tr class="even">
+<td align="left"><strong>overweight</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">0.132</td>
+</tr>
+<tr class="odd">
+<td align="left">   No</td>
+<td align="center">1 (100.0%)</td>
+<td align="center">235 (83.9%)</td>
+<td align="center">396 (89.0%)</td>
+<td align="center">632 (87.1%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Yes</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">45 (16.1%)</td>
+<td align="center">49 (11.0%)</td>
+<td align="center">94 (12.9%)</td>
+<td align="right"></td>
+</tr>
 </tbody>
 </table>
-<pre class="r"><code>table_two = tableby(binge_drinker ~age + gender + race + martstat, data=thesis_data_demo_clean)
+<pre class="r"><code>table_two = tableby(binge_drinker ~age + gender + race + martstat + overweight, data=thesis_data_demo_clean)
 summary(table_two)</code></pre>
 <table>
 <thead>
@@ -592,6 +621,27 @@ summary(table_two)</code></pre>
 <td align="center">5 (3.6%)</td>
 <td align="center">0 (0.0%)</td>
 <td align="center">5 (2.4%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left"><strong>overweight</strong></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="right">0.349</td>
+</tr>
+<tr class="odd">
+<td align="left">   No</td>
+<td align="center">157 (91.8%)</td>
+<td align="center">83 (88.3%)</td>
+<td align="center">240 (90.6%)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Yes</td>
+<td align="center">14 (8.2%)</td>
+<td align="center">11 (11.7%)</td>
+<td align="center">25 (9.4%)</td>
 <td align="right"></td>
 </tr>
 </tbody>
