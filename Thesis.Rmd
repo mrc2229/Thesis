@@ -15,6 +15,8 @@ library(knitr)
 library(foreign)
 library(Hmisc)
 library(arsenal)
+library(MatchIt)
+library(mice)
 ```
 
 # Data from NHANES
@@ -118,21 +120,21 @@ thesis_data_demo_clean = thesis_data_demo %>%
            "6" = "Asian",
            "7" = "Other Race or Multi-Racial"
          )) %>%
-   mutate(martstat=as.numeric(martstat)) %>%
+   mutate(martstat=as.factor(martstat)) %>%
    mutate(martstat =
          recode(martstat,
-           "1" = "Married",
-           "2" = "Widowed",
-           "3" = "Divorced",
-           "4" = "Separated",
-           "5" = "Never Married",
-           "6" = "Living with Partner",
+           "1" = "Married, Previously Married, or Living with Partner",
+           "2" = "Married, Previously Married, or Living with Partner",
+           "3" = "Married, Previously Married, or Living with Partner",
+           "4" = "Married, Previously Married, or Living with Partner",
+           "5" = "Never Married and does not Live with Partner",
+           "6" = "Married, Previously Married, or Living with Partner",
            "77" = "Refused",
            "99" = "Don't Know"
          )) %>%
   filter(drinker != "Don't Know") %>%
   mutate(drinker = fct_explicit_na(drinker, na_level = "Missing")) %>%
-  mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = "Missing"))
+  mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = "Missing")) 
 ```
 
 ```{r table 1 making, results='asis'}
@@ -147,18 +149,18 @@ table_two = tableby(binge_drinker ~age + gender + race + martstat + bmi, data=ta
 summary(table_two)
 ```
 
+```{r imputation}
+imputed_data = mice(thesis_data_demo_clean,m=5,maxit=50,meth='pmm',seed=500)
+summary(imputed_data)
+imputed_data <- complete(imputed_data)
+```
 
-ps = matchit(noise ~ SEXF + age + factor(racecat) + Language + 
-                   lninc + ImgGen + poly(mage,2) + fath + moth + meducat + 
-                   pc_psych_minor + pp_pa_minor + pp_pa_severe + 
-                   pc_pa_minor + pc_pa_severe + CH33 + factor(emp) + score + 
-                   factor(Pmarital_4cat) + factor(region) + no2_2000 +
-                   factor(religion) + citizen +  ndvi01 + tmax_mean + 
-                   popden, data = dt2, 
+
+prop_score = matchit(drinker ~ gender + age + factor(race) + factor(martstat) + 
+                   bmi, data = imputed_data, 
                  method = "full", 
                  replace=TRUE, discard=discard, 
-                 #exact=c("SEXF", "urbancat", "suburb"), 
-                 exact=c("SEXF"),
-                 mahvars = c("score", "lninc"), 
+                 exact=c("gender"),
+                 mahvars = c("bmi", "age"), 
                  caliper=0.2, 
                  reestimate=FALSE)

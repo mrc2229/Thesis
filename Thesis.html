@@ -250,24 +250,31 @@ thesis_data_demo =
            &quot;6&quot; = &quot;Asian&quot;,
            &quot;7&quot; = &quot;Other Race or Multi-Racial&quot;
          )) %&gt;%
-   mutate(martstat=as.numeric(martstat)) %&gt;%
+   mutate(martstat=as.factor(martstat)) %&gt;%
    mutate(martstat =
          recode(martstat,
-           &quot;1&quot; = &quot;Married&quot;,
-           &quot;2&quot; = &quot;Widowed&quot;,
-           &quot;3&quot; = &quot;Divorced&quot;,
-           &quot;4&quot; = &quot;Separated&quot;,
-           &quot;5&quot; = &quot;Never Married&quot;,
-           &quot;6&quot; = &quot;Living with Partner&quot;,
+           &quot;1&quot; = &quot;Married, Previously Married, or Living with Partner&quot;,
+           &quot;2&quot; = &quot;Married, Previously Married, or Living with Partner&quot;,
+           &quot;3&quot; = &quot;Married, Previously Married, or Living with Partner&quot;,
+           &quot;4&quot; = &quot;Married, Previously Married, or Living with Partner&quot;,
+           &quot;5&quot; = &quot;Never Married and does not Live with Partner&quot;,
+           &quot;6&quot; = &quot;Married, Previously Married, or Living with Partner&quot;,
            &quot;77&quot; = &quot;Refused&quot;,
            &quot;99&quot; = &quot;Don't Know&quot;
          )) %&gt;%
   filter(drinker != &quot;Don't Know&quot;) %&gt;%
   mutate(drinker = fct_explicit_na(drinker, na_level = &quot;Missing&quot;)) %&gt;%
-  mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = &quot;Missing&quot;))</code></pre>
+  mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = &quot;Missing&quot;)) </code></pre>
 <pre class="r"><code>table_one = tableby(drinker ~age + gender + race + martstat + bmi, data=thesis_data_demo_clean)
 summary(table_one)</code></pre>
-<table>
+<table style="width:100%;">
+<colgroup>
+<col width="52%"></col>
+<col width="13%"></col>
+<col width="13%"></col>
+<col width="13%"></col>
+<col width="6%"></col>
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -374,7 +381,7 @@ summary(table_one)</code></pre>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
-<td align="right">0.639</td>
+<td align="right">0.440</td>
 </tr>
 <tr class="odd">
 <td align="left">   N-Miss</td>
@@ -384,62 +391,41 @@ summary(table_one)</code></pre>
 <td align="right"></td>
 </tr>
 <tr class="even">
-<td align="left">   Divorced</td>
-<td align="center">0 (0.0%)</td>
-<td align="center">3 (0.9%)</td>
-<td align="center">3 (0.6%)</td>
+<td align="left">   Married, Previously Married, or Living with Partner</td>
+<td align="center">40 (31.0%)</td>
+<td align="center">121 (34.8%)</td>
+<td align="center">161 (33.8%)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
-<td align="left">   Living with Partner</td>
-<td align="center">21 (16.3%)</td>
-<td align="center">60 (17.2%)</td>
-<td align="center">81 (17.0%)</td>
-<td align="right"></td>
-</tr>
-<tr class="even">
-<td align="left">   Married</td>
-<td align="center">18 (14.0%)</td>
-<td align="center">50 (14.4%)</td>
-<td align="center">68 (14.3%)</td>
-<td align="right"></td>
-</tr>
-<tr class="odd">
-<td align="left">   Never Married</td>
+<td align="left">   Never Married and does not Live with Partner</td>
 <td align="center">89 (69.0%)</td>
 <td align="center">227 (65.2%)</td>
 <td align="center">316 (66.2%)</td>
 <td align="right"></td>
 </tr>
 <tr class="even">
-<td align="left">   Separated</td>
-<td align="center">1 (0.8%)</td>
-<td align="center">8 (2.3%)</td>
-<td align="center">9 (1.9%)</td>
-<td align="right"></td>
-</tr>
-<tr class="odd">
 <td align="left"><strong>Body Mass Index (kg/m</strong>2)**</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="right">0.679</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">   N-Miss</td>
 <td align="center">7</td>
 <td align="center">2</td>
 <td align="center">9</td>
 <td align="right"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">   Mean (SD)</td>
 <td align="center">27.122 (7.668)</td>
 <td align="center">26.889 (7.095)</td>
 <td align="center">26.978 (7.315)</td>
 <td align="right"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">   Range</td>
 <td align="center">16.200 - 64.600</td>
 <td align="center">16.200 - 63.900</td>
@@ -453,6 +439,14 @@ summary(table_one)</code></pre>
 table_two = tableby(binge_drinker ~age + gender + race + martstat + bmi, data=table_two_data)
 summary(table_two)</code></pre>
 <table>
+<colgroup>
+<col width="46%"></col>
+<col width="11%"></col>
+<col width="11%"></col>
+<col width="11%"></col>
+<col width="11%"></col>
+<col width="5%"></col>
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -574,7 +568,7 @@ summary(table_two)</code></pre>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
-<td align="right">0.031</td>
+<td align="right">0.011</td>
 </tr>
 <tr class="odd">
 <td align="left">   N-Miss</td>
@@ -585,31 +579,15 @@ summary(table_two)</code></pre>
 <td align="right"></td>
 </tr>
 <tr class="even">
-<td align="left">   Divorced</td>
-<td align="center">1 (0.7%)</td>
-<td align="center">2 (2.8%)</td>
-<td align="center">0 (0.0%)</td>
-<td align="center">3 (0.9%)</td>
+<td align="left">   Married, Previously Married, or Living with Partner</td>
+<td align="center">54 (39.7%)</td>
+<td align="center">14 (19.7%)</td>
+<td align="center">53 (37.6%)</td>
+<td align="center">121 (34.8%)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
-<td align="left">   Living with Partner</td>
-<td align="center">25 (18.4%)</td>
-<td align="center">8 (11.3%)</td>
-<td align="center">27 (19.1%)</td>
-<td align="center">60 (17.2%)</td>
-<td align="right"></td>
-</tr>
-<tr class="even">
-<td align="left">   Married</td>
-<td align="center">23 (16.9%)</td>
-<td align="center">4 (5.6%)</td>
-<td align="center">23 (16.3%)</td>
-<td align="center">50 (14.4%)</td>
-<td align="right"></td>
-</tr>
-<tr class="odd">
-<td align="left">   Never Married</td>
+<td align="left">   Never Married and does not Live with Partner</td>
 <td align="center">82 (60.3%)</td>
 <td align="center">57 (80.3%)</td>
 <td align="center">88 (62.4%)</td>
@@ -617,14 +595,6 @@ summary(table_two)</code></pre>
 <td align="right"></td>
 </tr>
 <tr class="even">
-<td align="left">   Separated</td>
-<td align="center">5 (3.7%)</td>
-<td align="center">0 (0.0%)</td>
-<td align="center">3 (2.1%)</td>
-<td align="center">8 (2.3%)</td>
-<td align="right"></td>
-</tr>
-<tr class="odd">
 <td align="left"><strong>Body Mass Index (kg/m</strong>2)**</td>
 <td align="center"></td>
 <td align="center"></td>
@@ -632,7 +602,7 @@ summary(table_two)</code></pre>
 <td align="center"></td>
 <td align="right">0.576</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">   N-Miss</td>
 <td align="center">1</td>
 <td align="center">1</td>
@@ -640,7 +610,7 @@ summary(table_two)</code></pre>
 <td align="center">2</td>
 <td align="right"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">   Mean (SD)</td>
 <td align="center">27.118 (7.504)</td>
 <td align="center">26.192 (5.715)</td>
@@ -648,7 +618,7 @@ summary(table_two)</code></pre>
 <td align="center">26.889 (7.095)</td>
 <td align="right"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">   Range</td>
 <td align="center">16.300 - 57.600</td>
 <td align="center">16.700 - 43.500</td>
@@ -658,7 +628,308 @@ summary(table_two)</code></pre>
 </tr>
 </tbody>
 </table>
-<p>ps = matchit(noise ~ SEXF + age + factor(racecat) + Language + lninc + ImgGen + poly(mage,2) + fath + moth + meducat + pc_psych_minor + pp_pa_minor + pp_pa_severe + pc_pa_minor + pc_pa_severe + CH33 + factor(emp) + score + factor(Pmarital_4cat) + factor(region) + no2_2000 + factor(religion) + citizen + ndvi01 + tmax_mean + popden, data = dt2, method = “full”, replace=TRUE, discard=discard, #exact=c(“SEXF”, “urbancat”, “suburb”), exact=c(“SEXF”), mahvars = c(“score”, “lninc”), caliper=0.2, reestimate=FALSE)</p>
+<pre class="r"><code>imputed_data = mice(thesis_data_demo_clean,m=5,maxit=50,meth='pmm',seed=500)</code></pre>
+<pre><code>## 
+##  iter imp variable
+##   1   1  hhinc  faminc  martstat  bmi
+##   1   2  hhinc  faminc  martstat  bmi
+##   1   3  hhinc  faminc  martstat  bmi
+##   1   4  hhinc  faminc  martstat  bmi
+##   1   5  hhinc  faminc  martstat  bmi
+##   2   1  hhinc  faminc  martstat  bmi
+##   2   2  hhinc  faminc  martstat  bmi
+##   2   3  hhinc  faminc  martstat  bmi
+##   2   4  hhinc  faminc  martstat  bmi
+##   2   5  hhinc  faminc  martstat  bmi
+##   3   1  hhinc  faminc  martstat  bmi
+##   3   2  hhinc  faminc  martstat  bmi
+##   3   3  hhinc  faminc  martstat  bmi
+##   3   4  hhinc  faminc  martstat  bmi
+##   3   5  hhinc  faminc  martstat  bmi
+##   4   1  hhinc  faminc  martstat  bmi
+##   4   2  hhinc  faminc  martstat  bmi
+##   4   3  hhinc  faminc  martstat  bmi
+##   4   4  hhinc  faminc  martstat  bmi
+##   4   5  hhinc  faminc  martstat  bmi
+##   5   1  hhinc  faminc  martstat  bmi
+##   5   2  hhinc  faminc  martstat  bmi
+##   5   3  hhinc  faminc  martstat  bmi
+##   5   4  hhinc  faminc  martstat  bmi
+##   5   5  hhinc  faminc  martstat  bmi
+##   6   1  hhinc  faminc  martstat  bmi
+##   6   2  hhinc  faminc  martstat  bmi
+##   6   3  hhinc  faminc  martstat  bmi
+##   6   4  hhinc  faminc  martstat  bmi
+##   6   5  hhinc  faminc  martstat  bmi
+##   7   1  hhinc  faminc  martstat  bmi
+##   7   2  hhinc  faminc  martstat  bmi
+##   7   3  hhinc  faminc  martstat  bmi
+##   7   4  hhinc  faminc  martstat  bmi
+##   7   5  hhinc  faminc  martstat  bmi
+##   8   1  hhinc  faminc  martstat  bmi
+##   8   2  hhinc  faminc  martstat  bmi
+##   8   3  hhinc  faminc  martstat  bmi
+##   8   4  hhinc  faminc  martstat  bmi
+##   8   5  hhinc  faminc  martstat  bmi
+##   9   1  hhinc  faminc  martstat  bmi
+##   9   2  hhinc  faminc  martstat  bmi
+##   9   3  hhinc  faminc  martstat  bmi
+##   9   4  hhinc  faminc  martstat  bmi
+##   9   5  hhinc  faminc  martstat  bmi
+##   10   1  hhinc  faminc  martstat  bmi
+##   10   2  hhinc  faminc  martstat  bmi
+##   10   3  hhinc  faminc  martstat  bmi
+##   10   4  hhinc  faminc  martstat  bmi
+##   10   5  hhinc  faminc  martstat  bmi
+##   11   1  hhinc  faminc  martstat  bmi
+##   11   2  hhinc  faminc  martstat  bmi
+##   11   3  hhinc  faminc  martstat  bmi
+##   11   4  hhinc  faminc  martstat  bmi
+##   11   5  hhinc  faminc  martstat  bmi
+##   12   1  hhinc  faminc  martstat  bmi
+##   12   2  hhinc  faminc  martstat  bmi
+##   12   3  hhinc  faminc  martstat  bmi
+##   12   4  hhinc  faminc  martstat  bmi
+##   12   5  hhinc  faminc  martstat  bmi
+##   13   1  hhinc  faminc  martstat  bmi
+##   13   2  hhinc  faminc  martstat  bmi
+##   13   3  hhinc  faminc  martstat  bmi
+##   13   4  hhinc  faminc  martstat  bmi
+##   13   5  hhinc  faminc  martstat  bmi
+##   14   1  hhinc  faminc  martstat  bmi
+##   14   2  hhinc  faminc  martstat  bmi
+##   14   3  hhinc  faminc  martstat  bmi
+##   14   4  hhinc  faminc  martstat  bmi
+##   14   5  hhinc  faminc  martstat  bmi
+##   15   1  hhinc  faminc  martstat  bmi
+##   15   2  hhinc  faminc  martstat  bmi
+##   15   3  hhinc  faminc  martstat  bmi
+##   15   4  hhinc  faminc  martstat  bmi
+##   15   5  hhinc  faminc  martstat  bmi
+##   16   1  hhinc  faminc  martstat  bmi
+##   16   2  hhinc  faminc  martstat  bmi
+##   16   3  hhinc  faminc  martstat  bmi
+##   16   4  hhinc  faminc  martstat  bmi
+##   16   5  hhinc  faminc  martstat  bmi
+##   17   1  hhinc  faminc  martstat  bmi
+##   17   2  hhinc  faminc  martstat  bmi
+##   17   3  hhinc  faminc  martstat  bmi
+##   17   4  hhinc  faminc  martstat  bmi
+##   17   5  hhinc  faminc  martstat  bmi
+##   18   1  hhinc  faminc  martstat  bmi
+##   18   2  hhinc  faminc  martstat  bmi
+##   18   3  hhinc  faminc  martstat  bmi
+##   18   4  hhinc  faminc  martstat  bmi
+##   18   5  hhinc  faminc  martstat  bmi
+##   19   1  hhinc  faminc  martstat  bmi
+##   19   2  hhinc  faminc  martstat  bmi
+##   19   3  hhinc  faminc  martstat  bmi
+##   19   4  hhinc  faminc  martstat  bmi
+##   19   5  hhinc  faminc  martstat  bmi
+##   20   1  hhinc  faminc  martstat  bmi
+##   20   2  hhinc  faminc  martstat  bmi
+##   20   3  hhinc  faminc  martstat  bmi
+##   20   4  hhinc  faminc  martstat  bmi
+##   20   5  hhinc  faminc  martstat  bmi
+##   21   1  hhinc  faminc  martstat  bmi
+##   21   2  hhinc  faminc  martstat  bmi
+##   21   3  hhinc  faminc  martstat  bmi
+##   21   4  hhinc  faminc  martstat  bmi
+##   21   5  hhinc  faminc  martstat  bmi
+##   22   1  hhinc  faminc  martstat  bmi
+##   22   2  hhinc  faminc  martstat  bmi
+##   22   3  hhinc  faminc  martstat  bmi
+##   22   4  hhinc  faminc  martstat  bmi
+##   22   5  hhinc  faminc  martstat  bmi
+##   23   1  hhinc  faminc  martstat  bmi
+##   23   2  hhinc  faminc  martstat  bmi
+##   23   3  hhinc  faminc  martstat  bmi
+##   23   4  hhinc  faminc  martstat  bmi
+##   23   5  hhinc  faminc  martstat  bmi
+##   24   1  hhinc  faminc  martstat  bmi
+##   24   2  hhinc  faminc  martstat  bmi
+##   24   3  hhinc  faminc  martstat  bmi
+##   24   4  hhinc  faminc  martstat  bmi
+##   24   5  hhinc  faminc  martstat  bmi
+##   25   1  hhinc  faminc  martstat  bmi
+##   25   2  hhinc  faminc  martstat  bmi
+##   25   3  hhinc  faminc  martstat  bmi
+##   25   4  hhinc  faminc  martstat  bmi
+##   25   5  hhinc  faminc  martstat  bmi
+##   26   1  hhinc  faminc  martstat  bmi
+##   26   2  hhinc  faminc  martstat  bmi
+##   26   3  hhinc  faminc  martstat  bmi
+##   26   4  hhinc  faminc  martstat  bmi
+##   26   5  hhinc  faminc  martstat  bmi
+##   27   1  hhinc  faminc  martstat  bmi
+##   27   2  hhinc  faminc  martstat  bmi
+##   27   3  hhinc  faminc  martstat  bmi
+##   27   4  hhinc  faminc  martstat  bmi
+##   27   5  hhinc  faminc  martstat  bmi
+##   28   1  hhinc  faminc  martstat  bmi
+##   28   2  hhinc  faminc  martstat  bmi
+##   28   3  hhinc  faminc  martstat  bmi
+##   28   4  hhinc  faminc  martstat  bmi
+##   28   5  hhinc  faminc  martstat  bmi
+##   29   1  hhinc  faminc  martstat  bmi
+##   29   2  hhinc  faminc  martstat  bmi
+##   29   3  hhinc  faminc  martstat  bmi
+##   29   4  hhinc  faminc  martstat  bmi
+##   29   5  hhinc  faminc  martstat  bmi
+##   30   1  hhinc  faminc  martstat  bmi
+##   30   2  hhinc  faminc  martstat  bmi
+##   30   3  hhinc  faminc  martstat  bmi
+##   30   4  hhinc  faminc  martstat  bmi
+##   30   5  hhinc  faminc  martstat  bmi
+##   31   1  hhinc  faminc  martstat  bmi
+##   31   2  hhinc  faminc  martstat  bmi
+##   31   3  hhinc  faminc  martstat  bmi
+##   31   4  hhinc  faminc  martstat  bmi
+##   31   5  hhinc  faminc  martstat  bmi
+##   32   1  hhinc  faminc  martstat  bmi
+##   32   2  hhinc  faminc  martstat  bmi
+##   32   3  hhinc  faminc  martstat  bmi
+##   32   4  hhinc  faminc  martstat  bmi
+##   32   5  hhinc  faminc  martstat  bmi
+##   33   1  hhinc  faminc  martstat  bmi
+##   33   2  hhinc  faminc  martstat  bmi
+##   33   3  hhinc  faminc  martstat  bmi
+##   33   4  hhinc  faminc  martstat  bmi
+##   33   5  hhinc  faminc  martstat  bmi
+##   34   1  hhinc  faminc  martstat  bmi
+##   34   2  hhinc  faminc  martstat  bmi
+##   34   3  hhinc  faminc  martstat  bmi
+##   34   4  hhinc  faminc  martstat  bmi
+##   34   5  hhinc  faminc  martstat  bmi
+##   35   1  hhinc  faminc  martstat  bmi
+##   35   2  hhinc  faminc  martstat  bmi
+##   35   3  hhinc  faminc  martstat  bmi
+##   35   4  hhinc  faminc  martstat  bmi
+##   35   5  hhinc  faminc  martstat  bmi
+##   36   1  hhinc  faminc  martstat  bmi
+##   36   2  hhinc  faminc  martstat  bmi
+##   36   3  hhinc  faminc  martstat  bmi
+##   36   4  hhinc  faminc  martstat  bmi
+##   36   5  hhinc  faminc  martstat  bmi
+##   37   1  hhinc  faminc  martstat  bmi
+##   37   2  hhinc  faminc  martstat  bmi
+##   37   3  hhinc  faminc  martstat  bmi
+##   37   4  hhinc  faminc  martstat  bmi
+##   37   5  hhinc  faminc  martstat  bmi
+##   38   1  hhinc  faminc  martstat  bmi
+##   38   2  hhinc  faminc  martstat  bmi
+##   38   3  hhinc  faminc  martstat  bmi
+##   38   4  hhinc  faminc  martstat  bmi
+##   38   5  hhinc  faminc  martstat  bmi
+##   39   1  hhinc  faminc  martstat  bmi
+##   39   2  hhinc  faminc  martstat  bmi
+##   39   3  hhinc  faminc  martstat  bmi
+##   39   4  hhinc  faminc  martstat  bmi
+##   39   5  hhinc  faminc  martstat  bmi
+##   40   1  hhinc  faminc  martstat  bmi
+##   40   2  hhinc  faminc  martstat  bmi
+##   40   3  hhinc  faminc  martstat  bmi
+##   40   4  hhinc  faminc  martstat  bmi
+##   40   5  hhinc  faminc  martstat  bmi
+##   41   1  hhinc  faminc  martstat  bmi
+##   41   2  hhinc  faminc  martstat  bmi
+##   41   3  hhinc  faminc  martstat  bmi
+##   41   4  hhinc  faminc  martstat  bmi
+##   41   5  hhinc  faminc  martstat  bmi
+##   42   1  hhinc  faminc  martstat  bmi
+##   42   2  hhinc  faminc  martstat  bmi
+##   42   3  hhinc  faminc  martstat  bmi
+##   42   4  hhinc  faminc  martstat  bmi
+##   42   5  hhinc  faminc  martstat  bmi
+##   43   1  hhinc  faminc  martstat  bmi
+##   43   2  hhinc  faminc  martstat  bmi
+##   43   3  hhinc  faminc  martstat  bmi
+##   43   4  hhinc  faminc  martstat  bmi
+##   43   5  hhinc  faminc  martstat  bmi
+##   44   1  hhinc  faminc  martstat  bmi
+##   44   2  hhinc  faminc  martstat  bmi
+##   44   3  hhinc  faminc  martstat  bmi
+##   44   4  hhinc  faminc  martstat  bmi
+##   44   5  hhinc  faminc  martstat  bmi
+##   45   1  hhinc  faminc  martstat  bmi
+##   45   2  hhinc  faminc  martstat  bmi
+##   45   3  hhinc  faminc  martstat  bmi
+##   45   4  hhinc  faminc  martstat  bmi
+##   45   5  hhinc  faminc  martstat  bmi
+##   46   1  hhinc  faminc  martstat  bmi
+##   46   2  hhinc  faminc  martstat  bmi
+##   46   3  hhinc  faminc  martstat  bmi
+##   46   4  hhinc  faminc  martstat  bmi
+##   46   5  hhinc  faminc  martstat  bmi
+##   47   1  hhinc  faminc  martstat  bmi
+##   47   2  hhinc  faminc  martstat  bmi
+##   47   3  hhinc  faminc  martstat  bmi
+##   47   4  hhinc  faminc  martstat  bmi
+##   47   5  hhinc  faminc  martstat  bmi
+##   48   1  hhinc  faminc  martstat  bmi
+##   48   2  hhinc  faminc  martstat  bmi
+##   48   3  hhinc  faminc  martstat  bmi
+##   48   4  hhinc  faminc  martstat  bmi
+##   48   5  hhinc  faminc  martstat  bmi
+##   49   1  hhinc  faminc  martstat  bmi
+##   49   2  hhinc  faminc  martstat  bmi
+##   49   3  hhinc  faminc  martstat  bmi
+##   49   4  hhinc  faminc  martstat  bmi
+##   49   5  hhinc  faminc  martstat  bmi
+##   50   1  hhinc  faminc  martstat  bmi
+##   50   2  hhinc  faminc  martstat  bmi
+##   50   3  hhinc  faminc  martstat  bmi
+##   50   4  hhinc  faminc  martstat  bmi
+##   50   5  hhinc  faminc  martstat  bmi</code></pre>
+<pre><code>## Warning: Number of logged events: 3</code></pre>
+<pre class="r"><code>summary(imputed_data)</code></pre>
+<pre><code>## Class: mids
+## Number of multiple imputations:  5 
+## Imputation methods:
+##          seqn binge_drinker       drinker         apnea        gender 
+##            &quot;&quot;            &quot;&quot;            &quot;&quot;            &quot;&quot;            &quot;&quot; 
+##           age          race         hhinc        faminc      martstat 
+##            &quot;&quot;            &quot;&quot;         &quot;pmm&quot;         &quot;pmm&quot;         &quot;pmm&quot; 
+##           bmi     education 
+##         &quot;pmm&quot;            &quot;&quot; 
+## PredictorMatrix:
+##               seqn binge_drinker drinker apnea gender age race hhinc
+## seqn             0             1       1     0      0   1    0     1
+## binge_drinker    1             0       1     0      0   1    0     1
+## drinker          1             1       0     0      0   1    0     1
+## apnea            1             1       1     0      0   1    0     1
+## gender           1             1       1     0      0   1    0     1
+## age              1             1       1     0      0   0    0     1
+##               faminc martstat bmi education
+## seqn               1        1   1         1
+## binge_drinker      1        1   1         1
+## drinker            1        1   1         1
+## apnea              1        1   1         1
+## gender             1        1   1         1
+## age                1        1   1         1
+## Number of logged events:  3 
+##   it im dep     meth    out
+## 1  0  0     constant  apnea
+## 2  0  0     constant gender
+## 3  0  0     constant   race</code></pre>
+<pre class="r"><code>imputed_data &lt;- complete(imputed_data)</code></pre>
+<pre><code>## Warning in bind_rows_(x, .id): Vectorizing 'labelled' elements may not
+## preserve their attributes</code></pre>
+<pre><code>## Warning in bind_rows_(x, .id): Vectorizing 'labelled' elements may not
+## preserve their attributes
+
+## Warning in bind_rows_(x, .id): Vectorizing 'labelled' elements may not
+## preserve their attributes
+
+## Warning in bind_rows_(x, .id): Vectorizing 'labelled' elements may not
+## preserve their attributes
+
+## Warning in bind_rows_(x, .id): Vectorizing 'labelled' elements may not
+## preserve their attributes
+
+## Warning in bind_rows_(x, .id): Vectorizing 'labelled' elements may not
+## preserve their attributes</code></pre>
+<p>prop_score = matchit(drinker ~ gender + age + factor(race) + factor(martstat) + bmi, data = imputed_data, method = “full”, replace=TRUE, discard=discard, exact=c(“gender”), mahvars = c(“bmi”, “age”), caliper=0.2, reestimate=FALSE)</p>
 </div>
 
 
