@@ -155,12 +155,39 @@ summary(imputed_data)
 imputed_data <- complete(imputed_data)
 ```
 
-
-prop_score = matchit(drinker ~ gender + age + factor(race) + factor(martstat) + 
-                   bmi, data = imputed_data, 
+```{r propensity score}
+prop_score = matchit(drinker ~ factor(gender) + age + factor(race) + factor(martstat) + bmi, data = imputed_data, 
                  method = "full", 
-                 replace=TRUE, discard=discard, 
-                 exact=c("gender"),
+                 replace=TRUE, discard = discard,
+                 exact=c("gender", "martstat", "race"),
                  mahvars = c("bmi", "age"), 
                  caliper=0.2, 
                  reestimate=FALSE)
+```
+
+#Fit propensity score matching
+  if(dichotomize != "none"){
+    ps = matchit(noise ~ SEXF + age + factor(racecat) + Language + 
+                   lninc + ImgGen + poly(mage,2) + fath + moth + meducat + 
+                   pc_psych_minor + pp_pa_minor + pp_pa_severe + 
+                   pc_pa_minor + pc_pa_severe + CH33 + factor(emp) + score + 
+                   factor(Pmarital_4cat) + factor(region) + no2_2000 +
+                   factor(religion) + citizen +  ndvi01 + tmax_mean + 
+                   popden, data = dt2, 
+                 method = "full", 
+                 replace=TRUE, discard=discard, 
+                 #exact=c("SEXF", "urbancat", "suburb"), 
+                 exact=c("SEXF"),
+                 mahvars = c("score", "lninc"), 
+                 caliper=0.2, 
+                 reestimate=FALSE)
+    
+#Grab matched data
+  psData = match.data(ps)
+  #Grab propensity scores
+  if(discard != "none"){
+  pscore = ps$distance[!ps$discarded]
+  }
+  else{
+  pscore = ps$distance
+  }
