@@ -190,7 +190,7 @@ summary {
 <pre><code>## Processing SAS dataset ALQ_I      ..</code></pre>
 <pre><code>## Processing SAS dataset SLQ_I      ..</code></pre>
 <pre><code>## Processing SAS dataset DEMO_I     ..</code></pre>
-<pre><code>## Processing SAS dataset MCQ_I      ..</code></pre>
+<pre><code>## Processing SAS dataset BMX_I      ..</code></pre>
 <pre class="r"><code>thesis_data = 
   left_join(alc_data, sleep_data, by = &quot;seqn&quot;)
 
@@ -200,7 +200,7 @@ thesis_data_demo =
 thesis_data_demo = 
   left_join(thesis_data_demo, weight_data, by = &quot;seqn&quot;)</code></pre>
 <pre class="r"><code>thesis_data_demo_clean = thesis_data_demo %&gt;%
-  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl, overweight=mcq365a) %&gt;%
+  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl, bmi=bmxbmi) %&gt;%
   filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24| age == 25) %&gt;%
   mutate(education = coalesce(education_20, education_19)) %&gt;%
   select(-education_19,-education_20) %&gt;%
@@ -208,25 +208,11 @@ thesis_data_demo =
   mutate(binge_drinker =
          recode(binge_drinker,
            &quot;0&quot; = &quot;No&quot;,
-           &quot;1&quot; = &quot;Yes&quot;,
-           &quot;2&quot; = &quot;Yes&quot;,
-           &quot;3&quot; = &quot;Yes&quot;,
-           &quot;4&quot; = &quot;Yes&quot;,
-           &quot;5&quot; = &quot;Yes&quot;,
-           &quot;6&quot; = &quot;Yes&quot;,
-           &quot;7&quot; = &quot;Yes&quot;,
-           &quot;8&quot; = &quot;Yes&quot;,
-           &quot;9&quot; = &quot;Yes&quot;,
-           &quot;10&quot; = &quot;Yes&quot;,
-           &quot;11&quot; = &quot;Yes&quot;,
-           &quot;12&quot; = &quot;Yes&quot;,
-           &quot;13&quot; = &quot;Yes&quot;,
-           &quot;14&quot; = &quot;Yes&quot;,
-           &quot;15&quot; = &quot;Yes&quot;,
-           &quot;16&quot; = &quot;Yes&quot;,
-           &quot;17&quot; = &quot;Yes&quot;,
-           &quot;18&quot; = &quot;Yes&quot;,
-           &quot;20&quot; = &quot;Yes&quot;,
+           &quot;1&quot; = &quot;Yes&quot;, &quot;2&quot; = &quot;Yes&quot;, &quot;3&quot; = &quot;Yes&quot;, &quot;4&quot; = &quot;Yes&quot;,
+           &quot;5&quot; = &quot;Yes&quot;, &quot;6&quot; = &quot;Yes&quot;, &quot;7&quot; = &quot;Yes&quot;, &quot;8&quot; = &quot;Yes&quot;,
+           &quot;9&quot; = &quot;Yes&quot;, &quot;10&quot; = &quot;Yes&quot;,&quot;11&quot; = &quot;Yes&quot;, &quot;12&quot; = &quot;Yes&quot;,
+           &quot;13&quot; = &quot;Yes&quot;, &quot;14&quot; = &quot;Yes&quot;, &quot;15&quot; = &quot;Yes&quot;, &quot;16&quot; = &quot;Yes&quot;,
+           &quot;17&quot; = &quot;Yes&quot;, &quot;18&quot; = &quot;Yes&quot;,&quot;20&quot; = &quot;Yes&quot;,
            &quot;777&quot; = &quot;Refused&quot;,
            &quot;999&quot; = &quot;Don't Know&quot;
          )) %&gt;%
@@ -276,16 +262,10 @@ thesis_data_demo =
            &quot;77&quot; = &quot;Refused&quot;,
            &quot;99&quot; = &quot;Don't Know&quot;
          )) %&gt;%
-   mutate(overweight=as.numeric(overweight)) %&gt;%
-   mutate(overweight =
-         recode(overweight,
-           &quot;1&quot; = &quot;Yes&quot;,
-           &quot;2&quot; = &quot;No&quot;,
-           &quot;7&quot; = &quot;Refused&quot;,
-           &quot;9&quot; = &quot;Don't Know&quot;
-         )) %&gt;%
-  filter(drinker != &quot;Don't Know&quot;)</code></pre>
-<pre class="r"><code>table_one = tableby(drinker ~age + gender + race + martstat + overweight, data=thesis_data_demo_clean)
+  filter(drinker != &quot;Don't Know&quot;) %&gt;%
+  mutate(drinker = fct_explicit_na(drinker, na_level = &quot;Missing&quot;)) %&gt;%
+  mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = &quot;Missing&quot;))</code></pre>
+<pre class="r"><code>table_one = tableby(drinker ~age + gender + race + martstat + bmi, data=thesis_data_demo_clean)
 summary(table_one)</code></pre>
 <table>
 <thead>
@@ -439,37 +419,47 @@ summary(table_one)</code></pre>
 <td align="right"></td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>overweight</strong></td>
+<td align="left"><strong>Body Mass Index (kg/m</strong>2)**</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
-<td align="right">0.048</td>
+<td align="right">0.679</td>
 </tr>
 <tr class="even">
-<td align="left">   No</td>
-<td align="center">235 (83.9%)</td>
-<td align="center">396 (89.0%)</td>
-<td align="center">631 (87.0%)</td>
+<td align="left">   N-Miss</td>
+<td align="center">7</td>
+<td align="center">2</td>
+<td align="center">9</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
-<td align="left">   Yes</td>
-<td align="center">45 (16.1%)</td>
-<td align="center">49 (11.0%)</td>
-<td align="center">94 (13.0%)</td>
+<td align="left">   Mean (SD)</td>
+<td align="center">27.122 (7.668)</td>
+<td align="center">26.889 (7.095)</td>
+<td align="center">26.978 (7.315)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Range</td>
+<td align="center">16.200 - 64.600</td>
+<td align="center">16.200 - 63.900</td>
+<td align="center">16.200 - 64.600</td>
 <td align="right"></td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>table_two = tableby(binge_drinker ~age + gender + race + martstat + overweight, data=thesis_data_demo_clean)
+<pre class="r"><code>table_two_data = thesis_data_demo_clean [!(thesis_data_demo_clean$drinker==&quot;No&quot;),]
+
+table_two = tableby(binge_drinker ~age + gender + race + martstat + bmi, data=table_two_data)
 summary(table_two)</code></pre>
 <table>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="center">No (N=171)</th>
-<th align="center">Yes (N=94)</th>
-<th align="center">Total (N=265)</th>
+<th align="center">No (N=170)</th>
+<th align="center">Yes (N=91)</th>
+<th align="center">Missing (N=184)</th>
+<th align="center">Total (N=445)</th>
 <th align="right">p value</th>
 </tr>
 </thead>
@@ -479,17 +469,20 @@ summary(table_two)</code></pre>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
-<td align="right">0.488</td>
+<td align="center"></td>
+<td align="right">0.843</td>
 </tr>
 <tr class="even">
 <td align="left">   Mean (SD)</td>
-<td align="center">21.988 (2.207)</td>
-<td align="center">21.787 (2.337)</td>
-<td align="center">21.917 (2.251)</td>
+<td align="center">21.988 (2.213)</td>
+<td align="center">21.890 (2.302)</td>
+<td align="center">21.848 (2.340)</td>
+<td align="center">21.910 (2.280)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
 <td align="left">   Range</td>
+<td align="center">18.000 - 25.000</td>
 <td align="center">18.000 - 25.000</td>
 <td align="center">18.000 - 25.000</td>
 <td align="center">18.000 - 25.000</td>
@@ -500,20 +493,23 @@ summary(table_two)</code></pre>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
-<td align="right">0.036</td>
+<td align="center"></td>
+<td align="right">0.001</td>
 </tr>
 <tr class="odd">
 <td align="left">   Female</td>
-<td align="center">81 (47.4%)</td>
-<td align="center">32 (34.0%)</td>
-<td align="center">113 (42.6%)</td>
+<td align="center">81 (47.6%)</td>
+<td align="center">30 (33.0%)</td>
+<td align="center">104 (56.5%)</td>
+<td align="center">215 (48.3%)</td>
 <td align="right"></td>
 </tr>
 <tr class="even">
 <td align="left">   Male</td>
-<td align="center">90 (52.6%)</td>
-<td align="center">62 (66.0%)</td>
-<td align="center">152 (57.4%)</td>
+<td align="center">89 (52.4%)</td>
+<td align="center">61 (67.0%)</td>
+<td align="center">80 (43.5%)</td>
+<td align="center">230 (51.7%)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
@@ -521,48 +517,55 @@ summary(table_two)</code></pre>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
-<td align="right">0.657</td>
+<td align="center"></td>
+<td align="right">0.273</td>
 </tr>
 <tr class="even">
 <td align="left">   Asian</td>
-<td align="center">14 (8.2%)</td>
-<td align="center">12 (12.8%)</td>
-<td align="center">26 (9.8%)</td>
+<td align="center">13 (7.6%)</td>
+<td align="center">11 (12.1%)</td>
+<td align="center">18 (9.8%)</td>
+<td align="center">42 (9.4%)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
 <td align="left">   Black</td>
-<td align="center">25 (14.6%)</td>
-<td align="center">17 (18.1%)</td>
-<td align="center">42 (15.8%)</td>
+<td align="center">25 (14.7%)</td>
+<td align="center">17 (18.7%)</td>
+<td align="center">47 (25.5%)</td>
+<td align="center">89 (20.0%)</td>
 <td align="right"></td>
 </tr>
 <tr class="even">
 <td align="left">   Mexican American</td>
-<td align="center">30 (17.5%)</td>
-<td align="center">19 (20.2%)</td>
-<td align="center">49 (18.5%)</td>
+<td align="center">30 (17.6%)</td>
+<td align="center">18 (19.8%)</td>
+<td align="center">37 (20.1%)</td>
+<td align="center">85 (19.1%)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
 <td align="left">   Other Hispanic</td>
 <td align="center">23 (13.5%)</td>
-<td align="center">10 (10.6%)</td>
-<td align="center">33 (12.5%)</td>
+<td align="center">10 (11.0%)</td>
+<td align="center">16 (8.7%)</td>
+<td align="center">49 (11.0%)</td>
 <td align="right"></td>
 </tr>
 <tr class="even">
 <td align="left">   Other Race or Multi-Racial</td>
-<td align="center">10 (5.8%)</td>
-<td align="center">5 (5.3%)</td>
-<td align="center">15 (5.7%)</td>
+<td align="center">10 (5.9%)</td>
+<td align="center">5 (5.5%)</td>
+<td align="center">12 (6.5%)</td>
+<td align="center">27 (6.1%)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
 <td align="left">   White</td>
-<td align="center">69 (40.4%)</td>
-<td align="center">31 (33.0%)</td>
-<td align="center">100 (37.7%)</td>
+<td align="center">69 (40.6%)</td>
+<td align="center">30 (33.0%)</td>
+<td align="center">54 (29.3%)</td>
+<td align="center">153 (34.4%)</td>
 <td align="right"></td>
 </tr>
 <tr class="even">
@@ -570,73 +573,92 @@ summary(table_two)</code></pre>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
-<td align="right">0.013</td>
+<td align="center"></td>
+<td align="right">0.031</td>
 </tr>
 <tr class="odd">
 <td align="left">   N-Miss</td>
 <td align="center">34</td>
-<td align="center">23</td>
-<td align="center">57</td>
+<td align="center">20</td>
+<td align="center">43</td>
+<td align="center">97</td>
 <td align="right"></td>
 </tr>
 <tr class="even">
 <td align="left">   Divorced</td>
 <td align="center">1 (0.7%)</td>
 <td align="center">2 (2.8%)</td>
-<td align="center">3 (1.4%)</td>
+<td align="center">0 (0.0%)</td>
+<td align="center">3 (0.9%)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
 <td align="left">   Living with Partner</td>
-<td align="center">25 (18.2%)</td>
+<td align="center">25 (18.4%)</td>
 <td align="center">8 (11.3%)</td>
-<td align="center">33 (15.9%)</td>
+<td align="center">27 (19.1%)</td>
+<td align="center">60 (17.2%)</td>
 <td align="right"></td>
 </tr>
 <tr class="even">
 <td align="left">   Married</td>
-<td align="center">23 (16.8%)</td>
+<td align="center">23 (16.9%)</td>
 <td align="center">4 (5.6%)</td>
-<td align="center">27 (13.0%)</td>
+<td align="center">23 (16.3%)</td>
+<td align="center">50 (14.4%)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
 <td align="left">   Never Married</td>
-<td align="center">83 (60.6%)</td>
+<td align="center">82 (60.3%)</td>
 <td align="center">57 (80.3%)</td>
-<td align="center">140 (67.3%)</td>
+<td align="center">88 (62.4%)</td>
+<td align="center">227 (65.2%)</td>
 <td align="right"></td>
 </tr>
 <tr class="even">
 <td align="left">   Separated</td>
-<td align="center">5 (3.6%)</td>
+<td align="center">5 (3.7%)</td>
 <td align="center">0 (0.0%)</td>
-<td align="center">5 (2.4%)</td>
+<td align="center">3 (2.1%)</td>
+<td align="center">8 (2.3%)</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>overweight</strong></td>
+<td align="left"><strong>Body Mass Index (kg/m</strong>2)**</td>
 <td align="center"></td>
 <td align="center"></td>
 <td align="center"></td>
-<td align="right">0.349</td>
+<td align="center"></td>
+<td align="right">0.576</td>
 </tr>
 <tr class="even">
-<td align="left">   No</td>
-<td align="center">157 (91.8%)</td>
-<td align="center">83 (88.3%)</td>
-<td align="center">240 (90.6%)</td>
+<td align="left">   N-Miss</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">2</td>
 <td align="right"></td>
 </tr>
 <tr class="odd">
-<td align="left">   Yes</td>
-<td align="center">14 (8.2%)</td>
-<td align="center">11 (11.7%)</td>
-<td align="center">25 (9.4%)</td>
+<td align="left">   Mean (SD)</td>
+<td align="center">27.118 (7.504)</td>
+<td align="center">26.192 (5.715)</td>
+<td align="center">27.020 (7.328)</td>
+<td align="center">26.889 (7.095)</td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="left">   Range</td>
+<td align="center">16.300 - 57.600</td>
+<td align="center">16.700 - 43.500</td>
+<td align="center">16.200 - 63.900</td>
+<td align="center">16.200 - 63.900</td>
 <td align="right"></td>
 </tr>
 </tbody>
 </table>
+<p>ps = matchit(noise ~ SEXF + age + factor(racecat) + Language + lninc + ImgGen + poly(mage,2) + fath + moth + meducat + pc_psych_minor + pp_pa_minor + pp_pa_severe + pc_pa_minor + pc_pa_severe + CH33 + factor(emp) + score + factor(Pmarital_4cat) + factor(region) + no2_2000 + factor(religion) + citizen + ndvi01 + tmax_mean + popden, data = dt2, method = “full”, replace=TRUE, discard=discard, #exact=c(“SEXF”, “urbancat”, “suburb”), exact=c(“SEXF”), mahvars = c(“score”, “lninc”), caliper=0.2, reestimate=FALSE)</p>
 </div>
 
 

@@ -47,12 +47,12 @@ demo_data = demo_data %>%
 ```
 
 ```{r weight data, echo=FALSE}
-weight_data = sasxport.get("./data/MCQ_I.XPT")
-write.csv(weight_data, file="MCQ_I.csv")
+weight_data = sasxport.get("./data/BMX_I.XPT")
+write.csv(weight_data, file="BMX_I.csv")
 
 weight_data = weight_data %>%
   janitor::clean_names() %>%
-  select(seqn, mcq365a)
+  select(seqn, bmxbmi)
 ```
 
 ```{r make final dataset}
@@ -68,7 +68,7 @@ thesis_data_demo =
 
 ```{r data cleaning}
 thesis_data_demo_clean = thesis_data_demo %>%
-  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl, overweight=mcq365a) %>%
+  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl, bmi=bmxbmi) %>%
   filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24| age == 25) %>%
   mutate(education = coalesce(education_20, education_19)) %>%
   select(-education_19,-education_20) %>%
@@ -76,25 +76,11 @@ thesis_data_demo_clean = thesis_data_demo %>%
   mutate(binge_drinker =
          recode(binge_drinker,
            "0" = "No",
-           "1" = "Yes",
-           "2" = "Yes",
-           "3" = "Yes",
-           "4" = "Yes",
-           "5" = "Yes",
-           "6" = "Yes",
-           "7" = "Yes",
-           "8" = "Yes",
-           "9" = "Yes",
-           "10" = "Yes",
-           "11" = "Yes",
-           "12" = "Yes",
-           "13" = "Yes",
-           "14" = "Yes",
-           "15" = "Yes",
-           "16" = "Yes",
-           "17" = "Yes",
-           "18" = "Yes",
-           "20" = "Yes",
+           "1" = "Yes", "2" = "Yes", "3" = "Yes", "4" = "Yes",
+           "5" = "Yes", "6" = "Yes", "7" = "Yes", "8" = "Yes",
+           "9" = "Yes", "10" = "Yes","11" = "Yes", "12" = "Yes",
+           "13" = "Yes", "14" = "Yes", "15" = "Yes", "16" = "Yes",
+           "17" = "Yes", "18" = "Yes","20" = "Yes",
            "777" = "Refused",
            "999" = "Don't Know"
          )) %>%
@@ -144,23 +130,35 @@ thesis_data_demo_clean = thesis_data_demo %>%
            "77" = "Refused",
            "99" = "Don't Know"
          )) %>%
-   mutate(overweight=as.numeric(overweight)) %>%
-   mutate(overweight =
-         recode(overweight,
-           "1" = "Yes",
-           "2" = "No",
-           "7" = "Refused",
-           "9" = "Don't Know"
-         )) %>%
-  filter(drinker != "Don't Know")
+  filter(drinker != "Don't Know") %>%
+  mutate(drinker = fct_explicit_na(drinker, na_level = "Missing")) %>%
+  mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = "Missing"))
 ```
 
 ```{r table 1 making, results='asis'}
-table_one = tableby(drinker ~age + gender + race + martstat + overweight, data=thesis_data_demo_clean)
+table_one = tableby(drinker ~age + gender + race + martstat + bmi, data=thesis_data_demo_clean)
 summary(table_one)
 ```
 
 ```{r table 2 making, results='asis'}
-table_two = tableby(binge_drinker ~age + gender + race + martstat + overweight, data=thesis_data_demo_clean)
+table_two_data = thesis_data_demo_clean [!(thesis_data_demo_clean$drinker=="No"),]
+
+table_two = tableby(binge_drinker ~age + gender + race + martstat + bmi, data=table_two_data)
 summary(table_two)
 ```
+
+
+ps = matchit(noise ~ SEXF + age + factor(racecat) + Language + 
+                   lninc + ImgGen + poly(mage,2) + fath + moth + meducat + 
+                   pc_psych_minor + pp_pa_minor + pp_pa_severe + 
+                   pc_pa_minor + pc_pa_severe + CH33 + factor(emp) + score + 
+                   factor(Pmarital_4cat) + factor(region) + no2_2000 +
+                   factor(religion) + citizen +  ndvi01 + tmax_mean + 
+                   popden, data = dt2, 
+                 method = "full", 
+                 replace=TRUE, discard=discard, 
+                 #exact=c("SEXF", "urbancat", "suburb"), 
+                 exact=c("SEXF"),
+                 mahvars = c("score", "lninc"), 
+                 caliper=0.2, 
+                 reestimate=FALSE)
