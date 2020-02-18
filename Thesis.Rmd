@@ -89,8 +89,8 @@ thesis_data_demo_clean = thesis_data_demo %>%
    mutate(drinker=as.numeric(drinker)) %>%
    mutate(drinker =
          recode(drinker,
-           "1" = "Yes",
-           "2" = "No",
+           "1" = "TRUE",
+           "2" = "FALSE",
            "7" = "Refused",
            "9" = "Don't Know"
          )) %>%
@@ -134,7 +134,8 @@ thesis_data_demo_clean = thesis_data_demo %>%
          )) %>%
   filter(drinker != "Don't Know") %>%
   mutate(drinker = fct_explicit_na(drinker, na_level = "Missing")) %>%
-  mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = "Missing")) 
+  mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = "Missing")) %>%
+mutate(drinker=as.logical(drinker))
 ```
 
 ```{r table 1 making, results='asis'}
@@ -149,7 +150,7 @@ table_two = tableby(binge_drinker ~age + gender + race + martstat + bmi, data=ta
 summary(table_two)
 ```
 
-```{r imputation}
+```{r imputation, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 imputed_data = mice(thesis_data_demo_clean,m=5,maxit=50,meth='pmm',seed=500)
 summary(imputed_data)
 imputed_data <- complete(imputed_data)
@@ -157,37 +158,21 @@ imputed_data <- complete(imputed_data)
 
 ```{r propensity score}
 prop_score = matchit(drinker ~ factor(gender) + age + factor(race) + factor(martstat) + bmi, data = imputed_data, 
-                 method = "full", 
+                 method = "nearest", 
                  replace=TRUE, discard = discard,
                  exact=c("gender", "martstat", "race"),
                  mahvars = c("bmi", "age"), 
                  caliper=0.2, 
                  reestimate=FALSE)
 ```
-
-#Fit propensity score matching
-  if(dichotomize != "none"){
-    ps = matchit(noise ~ SEXF + age + factor(racecat) + Language + 
-                   lninc + ImgGen + poly(mage,2) + fath + moth + meducat + 
-                   pc_psych_minor + pp_pa_minor + pp_pa_severe + 
-                   pc_pa_minor + pc_pa_severe + CH33 + factor(emp) + score + 
-                   factor(Pmarital_4cat) + factor(region) + no2_2000 +
-                   factor(religion) + citizen +  ndvi01 + tmax_mean + 
-                   popden, data = dt2, 
-                 method = "full", 
-                 replace=TRUE, discard=discard, 
-                 #exact=c("SEXF", "urbancat", "suburb"), 
-                 exact=c("SEXF"),
-                 mahvars = c("score", "lninc"), 
-                 caliper=0.2, 
-                 reestimate=FALSE)
-    
-#Grab matched data
-  psData = match.data(ps)
+#Grab matched data - will be done once prop_score is figured out
+```{r, matching}
+  psData = match.data(prop_score)
   #Grab propensity scores
   if(discard != "none"){
-  pscore = ps$distance[!ps$discarded]
+  pscore = prop_score$distance[!prop_score$discarded]
+  } %>%
+  else {
+  pscore = prop_score$distance
   }
-  else{
-  pscore = ps$distance
-  }
+```
