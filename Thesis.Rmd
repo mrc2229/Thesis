@@ -187,4 +187,6 @@ prop_score = matchit(drinker ~ gender + age + race + martstat + bmi, data = impu
 #Grab matched data - will be done once prop_score is figured out
 ```{r, matching}
   ps_data = match.data(prop_score)
+  summary(prop_score)
+  plot(prop_score)
 ```
