@@ -157,10 +157,20 @@ summary(table_two)
 ```{r imputation, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 imputed_data = mice(thesis_data_demo_clean,m=5,maxit=50,meth='pmm',seed=500)
 summary(imputed_data)
-imputed_data_all = complete(imputed_data, action = "long", include = FALSE) %>%
-  select(-.imp,-.id)
+
+imputed_data_1 = complete(imputed_data, action = 1, include = FALSE)
+imputed_data_2 = complete(imputed_data, action = 2, include = FALSE)
+imputed_data_3 = complete(imputed_data, action = 3, include = FALSE)
+imputed_data_4 = complete(imputed_data, action = 4, include = FALSE)
+imputed_data_5 = complete(imputed_data, action = 5, include = FALSE)
+
+imputed_data_all = list(imputed_data_1, imputed_data_2, imputed_data_3, imputed_data_4, imputed_data_5)
 #complete with all 5 imputed sets
 ```
+
+* Use stepAIC in stats package to check interaction terms.
+Forloop or Lapply to run prop_score for each individual dataset.
+Want to save weights
 
 ```{r propensity score}
 prop_score = matchit(drinker ~  age + bmi + gender + race + martstat, data = imputed_data_all, 
@@ -170,23 +180,26 @@ prop_score = matchit(drinker ~  age + bmi + gender + race + martstat, data = imp
                  mahvars = c("bmi","age"), 
                  caliper=.2, 
                  reestimate=FALSE)
-```
 
-Unsure on in method should be full or nearest. Have code for both for ease.
-
-```{r}
-prop_score = matchit(drinker ~ gender + age + race + martstat + bmi, data = imputed_data_all, 
-                 method = "nearest", 
-                replace=TRUE, discard = "both",
+for(imputed_data_all) {
+  prop_score = matchit(drinker ~  age + bmi + gender + race + martstat, data = imputed_data_all, 
+                 method = "full", 
+                 replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
-                 mahvars = c("bmi", "age"), 
-                 caliper=0.2, 
-               reestimate=FALSE)
+                 mahvars = c("bmi","age"), 
+                 caliper=.2, 
+                 reestimate=FALSE)
+}
+
+ #(prop_score, standardize = TRUE)
+ 
+ 
+ #plot(prop_score, type="jitter")
 ```
 
-#Grab matched data - will be done once prop_score is figured out
-```{r, matching}
+#Grab matched data - propensity scores
+```{r, matching and summary}
   ps_data = match.data(prop_score)
-  summary(prop_score)
-  plot(prop_score)
 ```
+
+look into outcome regression with these weights
