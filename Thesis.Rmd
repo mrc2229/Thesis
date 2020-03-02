@@ -172,17 +172,16 @@ imputed_data_all = list(imputed_data_1, imputed_data_2, imputed_data_3, imputed_
 Forloop or Lapply to run prop_score for each individual dataset.
 Want to save weights
 
-```{r propensity score}
-prop_score = matchit(drinker ~  age + bmi + gender + race + martstat, data = imputed_data_all, 
-                 method = "full", 
-                 replace=TRUE, discard = "both",
-                exact=c("gender", "martstat", "race"),
-                 mahvars = c("bmi","age"), 
-                 caliper=.2, 
-                 reestimate=FALSE)
+```{r}
+lm_1 = lm(drinker ~  age + bmi + gender + race + martstat + age*bmi + age*gender + age*race +age*martstat, data = imputed_data_1)
 
-for(imputed_data_all) {
-  prop_score = matchit(drinker ~  age + bmi + gender + race + martstat, data = imputed_data_all, 
+AIC(lm_1)
+```
+
+
+```{r propensity score}
+pscore = function(imputed_data_all){
+matchit(drinker ~  age + bmi + gender + race + martstat, data = imputed_data_all, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -190,6 +189,9 @@ for(imputed_data_all) {
                  caliper=.2, 
                  reestimate=FALSE)
 }
+
+prop_score = lapply (imputed_data_all, pscore)
+
 
  #(prop_score, standardize = TRUE)
  
