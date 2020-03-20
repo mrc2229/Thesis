@@ -180,14 +180,17 @@ AIC(lm_1)
 
 
 ```{r propensity score}
-pscore = function(imputed_data_all){
-matchit(drinker ~  age + bmi + gender + race + martstat, data = imputed_data_all, 
+pscore = function(x){
+match.data<-matchit(drinker ~  age + bmi + gender + race + martstat, data = x, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
                  mahvars = c("bmi","age"), 
                  caliper=.2, 
                  reestimate=FALSE)
+  
+  return(match.data$weights)
+  
 }
 
 prop_score = lapply (imputed_data_all, pscore)
