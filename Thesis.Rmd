@@ -17,6 +17,7 @@ library(Hmisc)
 library(arsenal)
 library(MatchIt)
 library(mice)
+library(stats)
 ```
 
 # Data from NHANES
@@ -173,6 +174,14 @@ Forloop or Lapply to run prop_score for each individual dataset.
 Want to save weights
 
 ```{r}
+mult_linear_1 = lm(drinker ~ . , data = imputed_data_1)
+
+interact_check = stepAIC(mult_linear,
+        direction = c("both", "backward", "forward"))
+```
+
+
+```{r}
 lm_1 = lm(drinker ~  age + bmi + gender + race + martstat + age*bmi + age*gender + age*race +age*martstat, data = imputed_data_1)
 
 AIC(lm_1)
@@ -204,7 +213,7 @@ prop_score = lapply (imputed_data_all, pscore)
 
 #Grab matched data - propensity scores
 ```{r, matching and summary}
-  ps_data = match.data(prop_score)
+  ps_data = match.data(weights)
 ```
 
 look into outcome regression with these weights
