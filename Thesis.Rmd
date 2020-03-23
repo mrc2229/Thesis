@@ -18,6 +18,7 @@ library(arsenal)
 library(MatchIt)
 library(mice)
 library(stats)
+library(MASS)
 ```
 
 # Data from NHANES
@@ -170,27 +171,22 @@ imputed_data_all = list(imputed_data_1, imputed_data_2, imputed_data_3, imputed_
 ```
 
 * Use stepAIC in stats package to check interaction terms.
+
+```{r}
+mult_linear_1 = lm(drinker ~ age + bmi + gender + race + martstat, data = imputed_data_1)
+
+interact_check = stepAIC(mult_linear_1, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
+        direction = c("both"))
+```
+
+* looks like best model is drinker ~ age + bmi + gender + race + bmi*gender according to stepAIC
+
 Forloop or Lapply to run prop_score for each individual dataset.
 Want to save weights
 
-```{r}
-mult_linear_1 = lm(drinker ~ . , data = imputed_data_1)
-
-interact_check = stepAIC(mult_linear,
-        direction = c("both", "backward", "forward"))
-```
-
-
-```{r}
-lm_1 = lm(drinker ~  age + bmi + gender + race + martstat + age*bmi + age*gender + age*race +age*martstat, data = imputed_data_1)
-
-AIC(lm_1)
-```
-
-
 ```{r propensity score}
 pscore = function(x){
-match.data<-matchit(drinker ~  age + bmi + gender + race + martstat, data = x, 
+match.data<-matchit(drinker ~  age + bmi + gender + race + bmi*gender, data = x, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
