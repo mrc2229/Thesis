@@ -29,7 +29,7 @@ write.csv(alc_data, file="ALQ_I.csv")
 
 alc_data = alc_data %>%
   janitor::clean_names() %>%
-  select(seqn, alq160, alq101)
+  dplyr::select(seqn, alq160, alq101)
 ```
 
 ```{r sleep data, echo=FALSE}
@@ -38,7 +38,7 @@ write.csv(sleep_data, file="SLQ_I.csv")
 
 sleep_data = sleep_data %>%
   janitor::clean_names() %>%
-  select(seqn, slq040)
+  dplyr::select(seqn, slq040)
 ```
 
 ```{r demographic data, echo=FALSE}
@@ -47,7 +47,7 @@ write.csv(demo_data, file="DEMO_I.csv")
 
 demo_data = demo_data %>%
   janitor::clean_names()%>%
-  select(seqn, riagendr, ridageyr, ridreth3, dmdeduc3, dmdeduc2, indhhin2, indfmin2, dmdmartl)
+  dplyr::select(seqn, riagendr, ridageyr, ridreth3, dmdmartl)
 ```
 
 ```{r weight data, echo=FALSE}
@@ -56,35 +56,33 @@ write.csv(weight_data, file="BMX_I.csv")
 
 weight_data = weight_data %>%
   janitor::clean_names() %>%
-  select(seqn, bmxbmi)
+  dplyr::select(seqn, bmxbmi)
 ```
 
 ```{r make final dataset}
 thesis_data = 
   left_join(alc_data, sleep_data, by = "seqn")
 
-thesis_data_demo = 
+thesis_data = 
   left_join(thesis_data, demo_data, by = "seqn")
 
-thesis_data_demo = 
-  left_join(thesis_data_demo, weight_data, by = "seqn")
+thesis_data = 
+  left_join(thesis_data, weight_data, by = "seqn")
 ```
 
 ```{r data cleaning}
-thesis_data_demo_clean = thesis_data_demo %>%
-  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, education_20=dmdeduc2, education_19=dmdeduc3, hhinc=indhhin2, faminc=indfmin2, martstat=dmdmartl, bmi=bmxbmi) %>%
+thesis_data_clean = thesis_data %>%
+  rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, martstat=dmdmartl, bmi=bmxbmi) %>%
   filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24| age == 25) %>%
-  mutate(education = coalesce(education_20, education_19)) %>%
-  select(-education_19,-education_20) %>%
   mutate(binge_drinker=as.numeric(binge_drinker)) %>%
   mutate(binge_drinker =
          recode(binge_drinker,
-           "0" = "No",
-           "1" = "Yes", "2" = "Yes", "3" = "Yes", "4" = "Yes",
-           "5" = "Yes", "6" = "Yes", "7" = "Yes", "8" = "Yes",
-           "9" = "Yes", "10" = "Yes","11" = "Yes", "12" = "Yes",
-           "13" = "Yes", "14" = "Yes", "15" = "Yes", "16" = "Yes",
-           "17" = "Yes", "18" = "Yes","20" = "Yes",
+           "0" = "FALSE",
+           "1" = "TRUE", "2" = "TRUE", "3" = "TRUE", "4" = "TRUE",
+           "5" = "TRUE", "6" = "TRUE", "7" = "TRUE", "8" = "TRUE",
+           "9" = "TRUE", "10" = "TRUE","11" = "TRUE", "12" = "TRUE",
+           "13" = "TRUE", "14" = "TRUE", "15" = "TRUE", "16" = "TRUE",
+           "17" = "TRUE", "18" = "TRUE","20" = "TRUE",
            "777" = "Refused",
            "999" = "Don't Know"
          )) %>%
@@ -99,10 +97,10 @@ thesis_data_demo_clean = thesis_data_demo %>%
    mutate(apnea=as.numeric(apnea)) %>%
    mutate(apnea =
          recode(apnea,
-           "0" = "No",
-           "1" = "No",
-           "2" = "Yes",
-           "3" = "Yes",
+           "0" = "FALSE",
+           "1" = "FALSE",
+           "2" = "TRUE",
+           "3" = "TRUE",
            "7" = "Refused",
            "9" = "Don't Know"
          )) %>%
@@ -136,8 +134,12 @@ thesis_data_demo_clean = thesis_data_demo %>%
          )) %>%
   filter(drinker != "Don't Know") %>%
   mutate(drinker = fct_explicit_na(drinker, na_level = "Missing")) %>%
+  filter(apnea != "Don't Know") %>%
+  mutate(apnea = fct_explicit_na(apnea, na_level = "Missing")) %>%
   mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = "Missing")) %>%
 mutate(drinker=as.logical(drinker)) %>%
+  mutate(apnea=as.logical(apnea)) %>%
+  mutate(binge_drinker=as.logical(binge_drinker)) %>%
   mutate(age=as.numeric(age)) %>%
   mutate(martstat=as.factor(martstat)) %>%
   mutate(race=as.factor(race)) %>%
@@ -145,19 +147,19 @@ mutate(drinker=as.logical(drinker)) %>%
 ```
 
 ```{r table 1 making, results='asis'}
-table_one = tableby(drinker ~age + gender + race + martstat + bmi, data=thesis_data_demo_clean)
+table_one = tableby(drinker ~age + gender + race + martstat + bmi, data=thesis_data_clean)
 summary(table_one)
 ```
 
 ```{r table 2 making, results='asis'}
-table_two_data = thesis_data_demo_clean [!(thesis_data_demo_clean$drinker=="No"),]
+table_two_data = thesis_data_clean [!(thesis_data_clean$drinker=="No"),]
 
 table_two = tableby(binge_drinker ~age + gender + race + martstat + bmi, data=table_two_data)
 summary(table_two)
 ```
 
 ```{r imputation, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-imputed_data = mice(thesis_data_demo_clean,m=5,maxit=50,meth='pmm',seed=500)
+imputed_data = mice(thesis_data_clean,m=5,maxit=50,meth='pmm',seed=500)
 summary(imputed_data)
 
 imputed_data_1 = complete(imputed_data, action = 1, include = FALSE)
@@ -179,7 +181,25 @@ interact_check = stepAIC(mult_linear_1, scope=list(upper= ~age*bmi*gender*race*m
         direction = c("both"))
 ```
 
-* looks like best model is drinker ~ age + bmi + gender + race + bmi*gender according to stepAIC
+* looks like best model is drinker ~ age + bmi + gender + race + bmi:gender according to stepAIC
+
+```{r}
+mult_linear_2 = lm(binge_drinker ~ age + bmi + gender + race + martstat, data = imputed_data_2)
+
+interact_check = stepAIC(mult_linear_2, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
+        direction = c("both"))
+```
+
+* looks like best model is binge_drinker ~ age + gender + race + martstat + age:gender according to stepAIC
+
+```{r}
+mult_linear_3 = lm(apnea ~ age + bmi + gender + race + martstat, data = imputed_data_3)
+
+interact_check = stepAIC(mult_linear_3, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
+        direction = c("both"))
+```
+
+* The best outcome model according to step AIC is apnea ~ race + martstat + race:martstat
 
 Forloop or Lapply to run prop_score for each individual dataset.
 Want to save weights
@@ -201,10 +221,10 @@ match.data<-matchit(drinker ~  age + bmi + gender + race + bmi*gender, data = x,
 prop_score = lapply (imputed_data_all, pscore)
 
 
- #(prop_score, standardize = TRUE)
+#(prop_score, standardize = TRUE)
  
  
- #plot(prop_score, type="jitter")
+#plot(prop_score, type="jitter")
 ```
 
 #Grab matched data - propensity scores
