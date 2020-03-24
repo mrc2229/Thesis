@@ -206,6 +206,9 @@ interact_check = stepAIC(mult_linear_3, scope=list(upper= ~age*bmi*gender*race*m
 
 * The best outcome model according to step AIC is apnea ~ race + martstat + race:martstat
 
+
+# This entire section is not making sense to me. Can't get list to unlist in a way that can be usable. Do have all the weights however.
+
 # Use Lapply to run prop_score for each individual dataset. Want function to save weights
 ```{r propensity score}
 pscore = function(x){
@@ -228,14 +231,18 @@ weights = do.call(rbind, prop_score)
 
 summary(weights)
 
-plot(prop_score, type="jitter")
+# this part is just not working at all until above is fixed: plot(prop_score, type="jitter")
 ```
 
-#Grab matched data - weights
+# Grab matched data - weights
+## None of this is working at all, but may have done this with do.call and rbind?
 ```{r, matching and summary}
 library(mitools)
 
 ps_data = MIcombine(weights)
 ```
-
 look into outcome regression with these weights
+
+# I think I am done once I fix the three issues? Should have model once AIC is fixed, weights as my "score" once I figure out why I don't have a usable list that gives the matched treated and controls, and that should then fix the plot I need. 
+
+# Also ask after this how to interpret these results, confused as to what this all says about drinking and apnea's relationship. 
