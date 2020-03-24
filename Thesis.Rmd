@@ -172,16 +172,21 @@ imputed_data_all = list(imputed_data_1, imputed_data_2, imputed_data_3, imputed_
 #complete with all 5 imputed sets
 ```
 
-* Use stepAIC in stats package to check interaction terms.
+* Use stepAIC in stats package to check interaction terms. Did this both as a function and not.
+# Ask which is prefered, or if both are wrong.
 
 ```{r}
-mult_linear_1 = lm(drinker ~ age + bmi + gender + race + martstat, data = imputed_data_1)
+aic_check = function(y){
+mult_linear_1 = lm(drinker ~ age + bmi + gender + race + martstat, data = y)
 
 interact_check = stepAIC(mult_linear_1, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
         direction = c("both"))
+}
+
+aic_drinker = lapply (imputed_data_all, aic_check)
 ```
 
-* looks like best model is drinker ~ age + bmi + gender + race + bmi:gender according to stepAIC
+* looks like best model is drinker ~ age + bmi + gender + race according to stepAIC
 
 ```{r}
 mult_linear_2 = lm(binge_drinker ~ age + bmi + gender + race + martstat, data = imputed_data_2)
@@ -201,35 +206,36 @@ interact_check = stepAIC(mult_linear_3, scope=list(upper= ~age*bmi*gender*race*m
 
 * The best outcome model according to step AIC is apnea ~ race + martstat + race:martstat
 
-Forloop or Lapply to run prop_score for each individual dataset.
-Want to save weights
-
+# Use Lapply to run prop_score for each individual dataset. Want function to save weights
 ```{r propensity score}
 pscore = function(x){
-match.data<-matchit(drinker ~  age + bmi + gender + race + bmi*gender, data = x, 
+ps<-matchit(drinker ~  age + bmi + gender + race + bmi*gender, data = x, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
                  mahvars = c("bmi","age"), 
                  caliper=.2, 
                  reestimate=FALSE)
-  
-  return(match.data$weights)
-  
+
+  return(ps$weights)
 }
 
 prop_score = lapply (imputed_data_all, pscore)
 
+summary(prop_score)
 
-#(prop_score, standardize = TRUE)
- 
- 
-#plot(prop_score, type="jitter")
+weights = do.call(rbind, prop_score)
+
+summary(weights)
+
+plot(prop_score, type="jitter")
 ```
 
-#Grab matched data - propensity scores
+#Grab matched data - weights
 ```{r, matching and summary}
-  ps_data = match.data(weights)
+library(mitools)
+
+ps_data = MIcombine(weights)
 ```
 
 look into outcome regression with these weights
