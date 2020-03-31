@@ -205,7 +205,7 @@ interact_check = stepAIC(mult_linear_3, scope=list(upper= ~age*bmi*gender*race*m
 ```
 
 * The best outcome model according to step AIC is apnea ~ race + martstat + race:martstat
-
+* Run again and make two models with dinker and binge
 
 # This entire section is not making sense to me. Can't get list to unlist in a way that can be usable. Do have all the weights however.
 
@@ -227,21 +227,14 @@ prop_score = lapply (imputed_data_all, pscore)
 
 summary(prop_score)
 
-weights = do.call(rbind, prop_score)
-
-summary(weights)
-
-# this part is just not working at all until above is fixed: plot(prop_score, type="jitter")
+# this part is just not working at all until above is fixed: plot(ps, type="jitter")
 ```
+# Check balance of the covariates with plots 
+# GLM using weights for the outcome model, for each imputed data set 
 
-# Grab matched data - weights
-## None of this is working at all, but may have done this with do.call and rbind?
-```{r, matching and summary}
-library(mitools)
+?GLM will give more information needed, can use lapply too to go accross each
 
-ps_data = MIcombine(weights)
-```
-look into outcome regression with these weights
+Use MICombine on these GLM results to get more familiar output. ?MICombine for more. 
 
 # I think I am done once I fix the three issues? Should have model once AIC is fixed, weights as my "score" once I figure out why I don't have a usable list that gives the matched treated and controls, and that should then fix the plot I need. 
 
