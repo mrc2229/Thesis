@@ -19,6 +19,8 @@ library(MatchIt)
 library(mice)
 library(stats)
 library(MASS)
+library(ggplot2)
+library(cobalt)
 ```
 
 # Data from NHANES
@@ -172,47 +174,49 @@ imputed_data_all = list(imputed_data_1, imputed_data_2, imputed_data_3, imputed_
 #complete with all 5 imputed sets
 ```
 
-* Use stepAIC in stats package to check interaction terms. Did this both as a function and not.
-# Ask which is prefered, or if both are wrong.
+* Use stepAIC in stats package to check interaction terms. 
 
 ```{r}
-aic_check = function(y){
-mult_linear_1 = lm(drinker ~ age + bmi + gender + race + martstat, data = y)
+mult_linear_1 = lm(drinker ~ age + bmi + gender + race + martstat, data = imputed_data_1)
 
 interact_check = stepAIC(mult_linear_1, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
         direction = c("both"))
-}
-
-aic_drinker = lapply (imputed_data_all, aic_check)
 ```
 
-* looks like best model is drinker ~ age + bmi + gender + race according to stepAIC
+* looks like best model is drinker ~ age + bmi + gender + race + bmi:gender according to stepAIC
 
 ```{r}
-mult_linear_2 = lm(binge_drinker ~ age + bmi + gender + race + martstat, data = imputed_data_2)
+mult_linear_2 = lm(binge_drinker ~ age + bmi + gender + race + martstat, data = imputed_data_1)
 
 interact_check = stepAIC(mult_linear_2, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
         direction = c("both"))
 ```
 
-* looks like best model is binge_drinker ~ age + gender + race + martstat + age:gender according to stepAIC
+* looks like best model is binge_drinker ~ age + gender + race + martstat + bmi:martstat according to stepAIC
 
 ```{r}
-mult_linear_3 = lm(apnea ~ age + bmi + gender + race + martstat, data = imputed_data_3)
+mult_linear_3 = lm(apnea ~ age + bmi + gender + race + martstat + drinker, data = imputed_data_1)
 
-interact_check = stepAIC(mult_linear_3, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
+interact_check = stepAIC(mult_linear_3, scope=list(upper= ~age*bmi*gender*race*martstat*drinker, lower= ~1),
         direction = c("both"))
 ```
 
 * The best outcome model according to step AIC is apnea ~ race + martstat + race:martstat
-* Run again and make two models with dinker and binge
 
-# This entire section is not making sense to me. Can't get list to unlist in a way that can be usable. Do have all the weights however.
+```{r}
+mult_linear_4 = lm(apnea ~ age + bmi + gender + race + martstat + binge_drinker, data = imputed_data_1)
+
+interact_check = stepAIC(mult_linear_4, scope=list(upper= ~age*bmi*gender*race*martstat*binge_drinker, lower= ~1),
+        direction = c("both"))
+```
+
+* The best outcome model according to step AIC is apnea ~ bmi + race + martstat + binge_drinker
+
 
 # Use Lapply to run prop_score for each individual dataset. Want function to save weights
 ```{r propensity score}
 pscore = function(x){
-ps<-matchit(drinker ~  age + bmi + gender + race + bmi*gender, data = x, 
+ps = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = x, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -220,16 +224,72 @@ ps<-matchit(drinker ~  age + bmi + gender + race + bmi*gender, data = x,
                  caliper=.2, 
                  reestimate=FALSE)
 
-  return(ps$weights)
+return(ps$weights)
 }
 
 prop_score = lapply (imputed_data_all, pscore)
 
 summary(prop_score)
-
-# this part is just not working at all until above is fixed: plot(ps, type="jitter")
 ```
+
 # Check balance of the covariates with plots 
+* Could not get to work in function for some reason, so ran each individually
+```{r}
+#Imputed Data 1
+love_test_1 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_1, 
+                 method = "full", 
+                 replace=TRUE, discard = "both",
+                exact=c("gender", "martstat", "race"),
+                 mahvars = c("bmi","age"), 
+                 caliper=.2, 
+                 reestimate=FALSE)
+
+love.plot(love_test_1) 
+
+#Imputed Data 2
+love_test_2 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_2, 
+                 method = "full", 
+                 replace=TRUE, discard = "both",
+                exact=c("gender", "martstat", "race"),
+                 mahvars = c("bmi","age"), 
+                 caliper=.2, 
+                 reestimate=FALSE)
+
+love.plot(love_test_2) 
+
+#Imputed Data 3
+love_test_3 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_3, 
+                 method = "full", 
+                 replace=TRUE, discard = "both",
+                exact=c("gender", "martstat", "race"),
+                 mahvars = c("bmi","age"), 
+                 caliper=.2, 
+                 reestimate=FALSE)
+
+love.plot(love_test_3) 
+
+#Imputed Data 4
+love_test_4 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_4, 
+                 method = "full", 
+                 replace=TRUE, discard = "both",
+                exact=c("gender", "martstat", "race"),
+                 mahvars = c("bmi","age"), 
+                 caliper=.2, 
+                 reestimate=FALSE)
+
+love.plot(love_test_4) 
+
+#Imputed Data 5
+love_test_5 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_5, 
+                 method = "full", 
+                 replace=TRUE, discard = "both",
+                exact=c("gender", "martstat", "race"),
+                 mahvars = c("bmi","age"), 
+                 caliper=.2, 
+                 reestimate=FALSE)
+
+love.plot(love_test_5) 
+```
 # GLM using weights for the outcome model, for each imputed data set 
 
 ?GLM will give more information needed, can use lapply too to go accross each
