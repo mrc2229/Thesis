@@ -310,11 +310,23 @@ outcome_all = lapply(imputed_data_all, outcome_fun)
 #summary(MIcombine(outcome_all))
 ```
 
-# GLM using weights for the outcome model, for each imputed data set 
+# Also try running each set separately. 
+
+```{r}
+
+outcome_lm_1 = glm(apnea ~ race + martstat + race:martstat + drinker, family = quasibinomial(), data=imputed_data_1, weights= prop_score[[1]])
+
+summary(imputed_data_1 $ apnea)
+summary(MIcombine(outcome_lm_1))
+
+#summary(MIcombine(outcome_all))
+```
+
+# GLM using weights for the outcome model, for each imputed data set. Binge Drinking.
 ```{r}
 outcome_fun_binge = function(z){
 outcome_fun_1 = function(y) {
-outcome_lm_1 = glm(apnea ~ bmi + race + martstat + binge_drinker, family = binomial(logit), data=z, weights= y)
+outcome_lm_1 = glm(apnea ~ bmi + race + martstat + binge_drinker, family = quasibinomial(), data=z, weights= y)
 }
 
 outcome_1 = lapply(prop_score, outcome_fun_1)
@@ -329,8 +341,7 @@ outcome_all_binge = lapply(imputed_data_all, outcome_fun_binge)
 ```
 
 
-?GLM will give more information needed, can use lapply too to go accross each
-
-Use MICombine on these GLM results to get more familiar output. ?MICombine for more. 
-
 # Also ask after this how to interpret these results, confused as to what this all says about drinking and apnea's relationship. 
+
+# Restrict binge drinking to only drinkers.
+# Make everything binary and rerun. 
