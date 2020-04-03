@@ -345,3 +345,4 @@ outcome_all_binge = lapply(imputed_data_all, outcome_fun_binge)
 
 # Restrict binge drinking to only drinkers.
 # Make everything binary and rerun. 
+# Add logical covariates, even if not outputted from StepAIC
