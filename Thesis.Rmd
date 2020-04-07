@@ -295,7 +295,7 @@ love.plot(love_test_5)
 ```{r}
 outcome_fun = function(z){
 outcome_fun_1 = function(y) {
-outcome_lm_1 = glm(apnea ~ race + martstat + race:martstat + drinker, family = quasibinomial(), data=z, weights= y)
+outcome_lm_1 = glm(apnea ~ bmi + age + gender + race + martstat + race:martstat + drinker, family = quasibinomial(), data=z, weights= y)
 }
 
 outcome_1 = lapply(prop_score, outcome_fun_1)
@@ -312,7 +312,7 @@ outcome_all = lapply(imputed_data_all, outcome_fun)
 # Also try running each set separately. 
 #Not working
 ```{r}
-outcome_glm_1 = glm(apnea ~ race + martstat + race:martstat + drinker, family = quasibinomial(), data=imputed_data_1, weights= prop_score[[1]])
+outcome_glm_1 = glm(apnea ~ bmi + age + gender + race + martstat + race:martstat + drinker, family = quasibinomial(), data=imputed_data_1, weights= prop_score[[1]])
 
 #summary(imputed_data_1$apnea)
 
@@ -332,7 +332,7 @@ binge_data_all = lapply(imputed_data_all, create_binge_data)
 
 #Weights for binge drinkers
 pscore_binge = function(x){
-ps_binge = matchit(binge_drinker ~ age + bmi + race + martstat + bmi:martstat, data = x, 
+ps_binge = matchit(binge_drinker ~ age + bmi + race + gender + martstat + bmi:martstat, data = x, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -349,7 +349,7 @@ prop_score_binge = lapply (binge_data_all, pscore_binge)
 outcome_fun_binge = function(z){
 outcome_fun_binge = function(y) {
 outcome_lm_binge =
-  glm(apnea ~ bmi + race + martstat + binge_drinker, family = quasibinomial(), data=z, weights= y)
+  glm(apnea ~ age + bmi + race + martstat + gender + binge_drinker, family = quasibinomial(), data=z, weights= y)
 }
 
 outcome_1 = lapply(prop_score_binge, outcome_fun_binge)
@@ -365,6 +365,5 @@ outcome_all_binge = lapply(binge_data_all, outcome_fun_binge)
 
 
 # Need to exponentiate the results
-# Add logical covariates, even if not outputted from StepAIC
 # After changing outcomes from logical to numeric, StepAIC not working properly,
 # MIcombine still not working in running individual imputed sets
