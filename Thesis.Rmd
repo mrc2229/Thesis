@@ -178,7 +178,7 @@ imputed_data_all = list(imputed_data_1, imputed_data_2, imputed_data_3, imputed_
 mult_linear_1 = lm(drinker ~ age + bmi + gender + race + martstat, data = imputed_data_1)
 
 interact_check = stepAIC(mult_linear_1, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
-        direction = c("both"))
+        direction = c("forward"))
 ```
 
 * looks like best model is drinker ~ age + bmi + gender + race + bmi:gender according to stepAIC
@@ -312,36 +312,59 @@ outcome_all = lapply(imputed_data_all, outcome_fun)
 # Also try running each set separately. 
 #Not working
 ```{r}
-outcome_lm_1 = glm(apnea ~ race + martstat + race:martstat + drinker, family = quasibinomial(), data=imputed_data_1, weights= prop_score[[1]])
+outcome_glm_1 = glm(apnea ~ race + martstat + race:martstat + drinker, family = quasibinomial(), data=imputed_data_1, weights= prop_score[[1]])
 
-summary(imputed_data_1$apnea)
+#summary(imputed_data_1$apnea)
 
-summary(MIcombine(outcome_lm_1))
+summary(MIcombine(outcome_glm_1))
 
 #summary(MIcombine(outcome_all))
 ```
 
 # GLM using weights for the outcome model, for each imputed data set. Binge Drinking.
 ```{r}
-outcome_fun_binge = function(z){
-outcome_fun_binge = function(y) {
-outcome_lm_binge = glm(apnea ~ bmi + race + martstat + binge_drinker, family = quasibinomial(), data=z, weights= y)
+#create a list from imputed data to exclude non-drinkers
+create_binge_data = function(b){
+  binge_data_list = b[!(b$drinker=="0"),]
 }
 
-outcome_1 = lapply(prop_score, outcome_fun_1)
+binge_data_all = lapply(imputed_data_all, create_binge_data)
+
+#Weights for binge drinkers
+pscore_binge = function(x){
+ps_binge = matchit(binge_drinker ~ age + bmi + race + martstat + bmi:martstat, data = x, 
+                 method = "full", 
+                 replace=TRUE, discard = "both",
+                exact=c("gender", "martstat", "race"),
+                 mahvars = c("bmi","age"), 
+                 caliper=.2, 
+                 reestimate=FALSE)
+
+return(ps_binge$weights)
+}
+
+prop_score_binge = lapply (binge_data_all, pscore_binge)
+
+#outcomes with binge drinking
+outcome_fun_binge = function(z){
+outcome_fun_binge = function(y) {
+outcome_lm_binge =
+  glm(apnea ~ bmi + race + martstat + binge_drinker, family = quasibinomial(), data=z, weights= y)
+}
+
+outcome_1 = lapply(prop_score_binge, outcome_fun_binge)
 
 summary(MIcombine(outcome_1))
 
 }
 
-outcome_all_binge = lapply(imputed_data_all, outcome_fun_binge)
+outcome_all_binge = lapply(binge_data_all, outcome_fun_binge)
 
 #summary(MIcombine(outcome_all_binge))
 ```
 
 
-# Also ask after this how to interpret these results, confused as to what this all says about drinking and apnea's relationship. 
-
-# Restrict binge drinking to only drinkers.
-# Make everything binary and rerun. 
+# Need to exponentiate the results
 # Add logical covariates, even if not outputted from StepAIC
+# After changing outcomes from logical to numeric, StepAIC not working properly,
+# MIcombine still not working in running individual imputed sets
