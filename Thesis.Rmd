@@ -62,7 +62,7 @@ weight_data = weight_data %>%
   dplyr::select(seqn, bmxbmi)
 ```
 
-```{r make final dataset}
+```{r make combined dataset}
 thesis_data = 
   left_join(alc_data, sleep_data, by = "seqn")
 
@@ -174,49 +174,81 @@ imputed_data_all = list(imputed_data_1, imputed_data_2, imputed_data_3, imputed_
 
 * Use stepAIC in stats package to check interaction terms. 
 
-```{r}
-mult_linear_1 = lm(drinker ~ age + bmi + gender + race + martstat, data = imputed_data_1)
+```{r stepAIC}
+# Have to make binge_drinker, drinker, and apnea logical varaibles just for stepAIC, made new dataset to now affect main data.
+aic_data = imputed_data_1 %>%
+  mutate(binge_drinker =
+         recode(binge_drinker,
+           "0" = "FALSE",
+           "1" = "TRUE",
+           "777" = "Refused",
+           "999" = "Don't Know"
+         )) %>%
+  mutate(drinker =
+         recode(drinker,
+           "0" = "FALSE",
+           "1" = "TRUE",
+           "7" = "Refused",
+           "9" = "Don't Know"
+         )) %>%
+  mutate(apnea =
+         recode(apnea,
+           "0" = "FALSE",
+           "1" = "TRUE",
+           "7" = "Refused",
+           "9" = "Don't Know"
+         )) %>%
+  mutate(binge_drinker=as.logical(binge_drinker)) %>%
+  mutate(drinker=as.logical(drinker)) %>%
+  mutate(apnea=as.logical(apnea))
+
+# Best model for drinker
+mult_linear_1 = lm(drinker ~ age + bmi + gender + race + martstat, data = aic_data)
 
 interact_check = stepAIC(mult_linear_1, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
         direction = c("forward"))
 ```
 
-* looks like best model is drinker ~ age + bmi + gender + race + bmi:gender according to stepAIC
+* It looks like best model is drinker ~ age + bmi + gender + race + martstat + age:martstat + bmi:martstat according to stepAIC
 
 ```{r}
-binge_data_1= imputed_data_1 [!(imputed_data_1$drinker=="0"),]
+#Limit data so non-drinkers are excluded from binge drinker analysis.
+binge_data_1= aic_data [!(aic_data$drinker=="FALSE"),]
 
+# Best model for binge_drinker
 mult_linear_2 = lm(binge_drinker ~ age + bmi + gender + race + martstat, data = binge_data_1)
 
 interact_check = stepAIC(mult_linear_2, scope=list(upper= ~age*bmi*gender*race*martstat, lower= ~1),
         direction = c("both"))
 ```
 
-* looks like best model is binge_drinker ~ age + bmi + race + martstat + bmi:martstat according to stepAIC
+* It looks like best model is binge_drinker ~ gender + martstat + gender:martstat according to stepAIC
 
 ```{r}
-mult_linear_3 = lm(apnea ~ age + bmi + gender + race + martstat + drinker, data = imputed_data_1)
+# Best outcome model with drinker included
+mult_linear_3 = lm(apnea ~ age + bmi + gender + race + martstat + drinker, data = aic_data)
 
 interact_check = stepAIC(mult_linear_3, scope=list(upper= ~age*bmi*gender*race*martstat*drinker, lower= ~1),
         direction = c("both"))
 ```
 
-* The best outcome model according to step AIC is apnea ~ race + martstat + race:martstat
+* The best outcome model according to step AIC is apnea ~ bmi + race + martstat + drinker + martstat:drinker
 
 ```{r}
+# Best outcome model with binge_drinker included
 mult_linear_4 = lm(apnea ~ age + bmi + gender + race + martstat + binge_drinker, data = binge_data_1)
 
 interact_check = stepAIC(mult_linear_4, scope=list(upper= ~age*bmi*gender*race*martstat*binge_drinker, lower= ~1),
         direction = c("both"))
 ```
 
-* The best outcome model according to step AIC is apnea ~ bmi + race + martstat + binge_drinker
+* The best outcome model according to step AIC is apnea ~ bmi + race + binge_drinker + bmi:race
 
 
 # Use Lapply to run prop_score for each individual dataset. Want function to save weights
 ```{r propensity score}
 pscore = function(x){
-ps = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = x, 
+ps = matchit(drinker ~  age + bmi + gender + race + martstat + age:martstat + bmi:martstat, data = x, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -233,7 +265,7 @@ summary(prop_score)
 ```
 
 # Check balance of the covariates with plots 
-* Could not get to work in function for some reason, so ran each individually
+* Ran each individually
 ```{r}
 #Imputed Data 1
 love_test_1 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_1, 
@@ -291,11 +323,11 @@ love_test_5 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = 
 love.plot(love_test_5) 
 ```
 
-# GLM using weights for the outcome model, for each imputed data set 
+# GLM using weights for the outcome model with drinker, for each imputed data set. Included variables from stepAIC and any other variables that logically should be included.
 ```{r}
 outcome_fun = function(z){
 outcome_fun_1 = function(y) {
-outcome_lm_1 = glm(apnea ~ bmi + age + gender + race + martstat + race:martstat + drinker, family = quasibinomial(), data=z, weights= y)
+outcome_lm_1 = glm(apnea ~ bmi + age + gender + race + martstat + drinker + martstat:drinker, family = quasibinomial(), data=z, weights= y)
 }
 
 outcome_1 = lapply(prop_score, outcome_fun_1)
@@ -305,23 +337,10 @@ summary(MIcombine(outcome_1))
 }
 
 outcome_all = lapply(imputed_data_all, outcome_fun)
-
-#summary(MIcombine(outcome_all))
 ```
 
-# Also try running each set separately. 
-#Not working
-```{r}
-outcome_glm_1 = glm(apnea ~ bmi + age + gender + race + martstat + race:martstat + drinker, family = quasibinomial(), data=imputed_data_1, weights= prop_score[[1]])
 
-#summary(imputed_data_1$apnea)
-
-summary(MIcombine(outcome_glm_1))
-
-#summary(MIcombine(outcome_all))
-```
-
-# GLM using weights for the outcome model, for each imputed data set. Binge Drinking.
+# GLM using weights for the outcome model with binge drinking, for each imputed data set. Included variables from stepAIC and any other variables that logically should be included.
 ```{r}
 #create a list from imputed data to exclude non-drinkers
 create_binge_data = function(b){
@@ -332,7 +351,7 @@ binge_data_all = lapply(imputed_data_all, create_binge_data)
 
 #Weights for binge drinkers
 pscore_binge = function(x){
-ps_binge = matchit(binge_drinker ~ age + bmi + race + gender + martstat + bmi:martstat, data = x, 
+ps_binge = matchit(binge_drinker ~ age + bmi + race + gender + martstat + gender:martstat, data = x, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -349,7 +368,7 @@ prop_score_binge = lapply (binge_data_all, pscore_binge)
 outcome_fun_binge = function(z){
 outcome_fun_binge = function(y) {
 outcome_lm_binge =
-  glm(apnea ~ age + bmi + race + martstat + gender + binge_drinker, family = quasibinomial(), data=z, weights= y)
+  glm(apnea ~ age + bmi + race + martstat + gender + binge_drinker + bmi:race, family = quasibinomial(), data=z, weights= y)
 }
 
 outcome_1 = lapply(prop_score_binge, outcome_fun_binge)
@@ -359,11 +378,7 @@ summary(MIcombine(outcome_1))
 }
 
 outcome_all_binge = lapply(binge_data_all, outcome_fun_binge)
-
-#summary(MIcombine(outcome_all_binge))
 ```
 
 
-# Need to exponentiate the results
-# After changing outcomes from logical to numeric, StepAIC not working properly,
-# MIcombine still not working in running individual imputed sets
+# Exponentiate the results
