@@ -118,11 +118,11 @@ thesis_data_clean = thesis_data %>%
    mutate(race =
          recode(race,
            "1" = "Mexican American",
-           "2" = "Other Hispanic",
+           "2" = "Other Race",
            "3" = "White",
            "4" = "Black",
            "6" = "Asian",
-           "7" = "Other Race or Multi-Racial"
+           "7" = "Other Race"
          )) %>%
    mutate(martstat=as.factor(martstat)) %>%
    mutate(martstat =
@@ -140,7 +140,7 @@ thesis_data_clean = thesis_data %>%
   mutate(drinker = fct_explicit_na(drinker, na_level = "Missing")) %>%
   filter(apnea != "Don't Know") %>%
   mutate(apnea = fct_explicit_na(apnea, na_level = "Missing")) %>%
-  mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = "Missing")) %>%
+ mutate(binge_drinker = fct_explicit_na(binge_drinker, na_level = "Missing")) %>%
   mutate(age=as.numeric(age)) %>%
   mutate(martstat=as.factor(martstat)) %>%
   mutate(race=as.factor(race)) %>%
