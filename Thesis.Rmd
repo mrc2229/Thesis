@@ -23,6 +23,7 @@ library(ggplot2)
 library(cobalt)
 library(mitools)
 library(haven)
+library(survey)
 ```
 
 # Data from NHANES
@@ -145,9 +146,8 @@ thesis_data_clean = thesis_data %>%
   mutate(martstat=as.factor(martstat)) %>%
   mutate(race=as.factor(race)) %>%
   mutate(gender=as.factor(gender)) %>%
-  svydesign(id = ~seqn,
-            weights = ~nhanes_weights,
-            nest = TRUE)
+  svydesign(id = ~1,
+            weights = ~nhanes_weights)
 ```
 
 ```{r table 1 making, results='asis'}
