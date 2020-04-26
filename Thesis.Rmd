@@ -22,6 +22,7 @@ library(MASS)
 library(ggplot2)
 library(cobalt)
 library(mitools)
+library(haven)
 ```
 
 # Data from NHANES
@@ -143,7 +144,10 @@ thesis_data_clean = thesis_data %>%
   mutate(age=as.numeric(age)) %>%
   mutate(martstat=as.factor(martstat)) %>%
   mutate(race=as.factor(race)) %>%
-  mutate(gender=as.factor(gender))
+  mutate(gender=as.factor(gender)) %>%
+  svydesign(id = ~seqn,
+            weights = ~nhanes_weights,
+            nest = TRUE)
 ```
 
 ```{r table 1 making, results='asis'}
@@ -254,7 +258,7 @@ ps = matchit(drinker ~  age + bmi + gender + race + martstat + age:martstat + bm
                 exact=c("gender", "martstat", "race"),
                  mahvars = c("bmi","age"), 
                  caliper=.2, 
-                 reestimate=FALSE)
+                 reestimate=TRUE)
 
 return(ps$weights)
 }
