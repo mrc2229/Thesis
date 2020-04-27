@@ -153,6 +153,10 @@ thesis_data_clean = thesis_data %>%
 summary(thesis_data_clean$stan_nhanes_weights)
 ```
 
+* Mean of standardized NHANES weights is 1.00 as expected. 
+
+# Making demographic tables
+
 ```{r table 1 making, results='asis'}
 table_one = tableby(drinker ~age + gender + race + martstat + bmi, data=thesis_data_clean)
 summary(table_one)
@@ -164,6 +168,8 @@ table_two_data = thesis_data_clean [!(thesis_data_clean$drinker=="0"),]
 table_two = tableby(binge_drinker ~age + gender + race + martstat + bmi, data=table_two_data)
 summary(table_two)
 ```
+
+# Making imputed data sets
 
 ```{r imputation, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 imputed_data = mice(thesis_data_clean,m=5,maxit=50,meth='pmm',seed=500)
@@ -366,6 +372,19 @@ weight_plot2 = thesis_data_clean %>%
   )
 ```
 
+# Truncate Imputed Data
+
+```{r}
+truncate_fun = function(t) {
+truncate_fun_1 = function(p){
+  truncated_data = t %>%
+    filter((p*((nhanes_weights)/mean(nhanes_weights))) < 5)
+}
+trunc_step_1 = lapply(prop_score, truncate_fun_1)
+}
+
+imputed_data_all = lapply(imputed_data_all, truncate_fun)
+```
 
 
 # GLM using weights for the outcome model with drinker, for each imputed data set. Included variables from stepAIC and any other variables that logically should be included.
