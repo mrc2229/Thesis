@@ -145,8 +145,12 @@ thesis_data_clean = thesis_data %>%
   mutate(martstat=as.factor(martstat)) %>%
   mutate(race=as.factor(race)) %>%
   mutate(gender=as.factor(gender)) %>%
-  mutate(martstat = fct_explicit_na(martstat, na_level = "0"))
+  mutate(martstat = fct_explicit_na(martstat, na_level = "0")) %>%
+  mutate(stan_nhanes_weights=
+          ((nhanes_weights)/mean(nhanes_weights))
+        )
    
+summary(thesis_data_clean$stan_nhanes_weights)
 ```
 
 ```{r table 1 making, results='asis'}
@@ -326,6 +330,43 @@ love_test_5 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = 
 
 love.plot(love_test_5) 
 ```
+
+# Checking the balance of propensity score weight times standardized NHANES weights to see if any need to be truncated
+
+```{r}
+weight_plot1 = thesis_data_clean %>%
+  mutate (stand_weight =
+           ((prop_score[[3]])*(stan_nhanes_weights))
+          )
+
+summary(weight_plot1$stand_weight)
+
+ ggplot(data = weight_plot1,aes(x=stand_weight,y=seqn))+
+  geom_point()+
+  labs(
+    title = "Balance of Propensity Score Weight times Standardized NHANES Weights",
+    x = "Propensity Score Weight times Standardized NHANES Weights",
+    y ="Sequence Number"
+  )
+
+weight_plot2 = thesis_data_clean %>%
+  mutate (stand_weight =
+           ((prop_score[[3]])*(stan_nhanes_weights))
+          ) %>%
+  filter(stand_weight < 5)
+
+  summary(weight_plot2$stand_weight)
+
+  ggplot(data = weight_plot2, aes(x=stand_weight,y=seqn))+
+  geom_point()+
+  labs(
+    title = "Truncated Balance of Propensity Score Weight times Standardized NHANES Weights",
+    x = "Propensity Score Weight times Standardized NHANES Weights",
+    y ="Sequence Number"
+  )
+```
+
+
 
 # GLM using weights for the outcome model with drinker, for each imputed data set. Included variables from stepAIC and any other variables that logically should be included.
 ```{r}
