@@ -144,7 +144,9 @@ thesis_data_clean = thesis_data %>%
   mutate(age=as.numeric(age)) %>%
   mutate(martstat=as.factor(martstat)) %>%
   mutate(race=as.factor(race)) %>%
-  mutate(gender=as.factor(gender))
+  mutate(gender=as.factor(gender)) %>%
+  mutate(martstat = fct_explicit_na(martstat, na_level = "0"))
+   
 ```
 
 ```{r table 1 making, results='asis'}
@@ -329,7 +331,7 @@ love.plot(love_test_5)
 ```{r}
 outcome_fun = function(z){
 outcome_fun_1 = function(y) {
-outcome_lm_1 = glm(apnea ~ bmi + age + gender + race + martstat + drinker + martstat:drinker, family = quasibinomial(), data=z, weights= ((y*nhanes_weights)/mean(nhanes_weights)))
+outcome_lm_1 = glm(apnea ~ bmi + age + gender + race + martstat + drinker + martstat:drinker, family = quasibinomial(), data=z, weights= (y*(nhanes_weights)/mean(nhanes_weights)))
 }
 
 outcome_1 = lapply(prop_score, outcome_fun_1)
@@ -370,7 +372,7 @@ prop_score_binge = lapply (binge_data_all, pscore_binge)
 outcome_fun_binge = function(z){
 outcome_fun_binge = function(y) {
 outcome_lm_binge =
-  glm(apnea ~ age + bmi + race + martstat + gender + binge_drinker + bmi:race, family = quasibinomial(), data=z, weights= ((y*nhanes_weights)/mean(nhanes_weights)))
+  glm(apnea ~ age + bmi + race + martstat + gender + binge_drinker + bmi:race, family = quasibinomial(), data=z, weights= (y*(nhanes_weights)/mean(nhanes_weights)))
 }
 
 outcome_1 = lapply(prop_score_binge, outcome_fun_binge)
