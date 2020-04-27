@@ -77,7 +77,7 @@ thesis_data =
 ```{r data cleaning}
 thesis_data_clean = thesis_data %>%
   rename(gender=riagendr, drinker=alq101, binge_drinker=alq160, apnea=slq040, age=ridageyr, race=ridreth3, martstat=dmdmartl, bmi=bmxbmi, nhanes_weights=wtmec2yr) %>%
-  filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24| age == 25) %>%
+  filter(age == 18|age == 19|age == 20|age == 21|age == 22|age == 23|age == 24) %>%
   mutate(binge_drinker=as.numeric(binge_drinker)) %>%
   mutate(binge_drinker =
          recode(binge_drinker,
@@ -222,7 +222,7 @@ interact_check = stepAIC(mult_linear_1, scope=list(upper= ~age*bmi*gender*race*m
         direction = c("forward"))
 ```
 
-* It looks like best model is drinker ~ age + bmi + gender + race + martstat + age:martstat + bmi:martstat according to stepAIC
+* It looks like best model is drinker ~ age + bmi + gender + race + martstat + age:martstat + bmi:martstat + bmi:race + race:martstat according to stepAIC
 
 ```{r}
 #Limit data so non-drinkers are excluded from binge drinker analysis.
@@ -245,7 +245,7 @@ interact_check = stepAIC(mult_linear_3, scope=list(upper= ~age*bmi*gender*race*m
         direction = c("both"))
 ```
 
-* The best outcome model according to step AIC is apnea ~ bmi + race + martstat + drinker + martstat:drinker
+* The best outcome model according to step AIC is apnea ~ bmi + race + martstat +gender:martstat
 
 ```{r}
 # Best outcome model with binge_drinker included
@@ -262,7 +262,7 @@ interact_check = stepAIC(mult_linear_4, scope=list(upper= ~age*bmi*gender*race*m
 ```{r propensity score}
 pscore = function(x){
 ps =
-  matchit(drinker ~  age + bmi + gender + race + martstat + age:martstat + bmi:martstat, data = x, 
+  matchit(drinker ~  age + bmi + gender + race + martstat + age:martstat + bmi:martstat + bmi:race + race:martstat, data = x, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -282,7 +282,7 @@ summary(prop_score)
 * Ran each individually
 ```{r}
 #Imputed Data 1
-love_test_1 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_1, 
+love_test_1 = matchit(drinker ~ age + bmi + gender + race + martstat + age:martstat + bmi:martstat + bmi:race + race:martstat, data = imputed_data_1, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -293,7 +293,7 @@ love_test_1 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = 
 love.plot(love_test_1) 
 
 #Imputed Data 2
-love_test_2 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_2, 
+love_test_2 = matchit(drinker ~ age + bmi + gender + race + martstat + age:martstat + bmi:martstat + bmi:race + race:martstat, data = imputed_data_2, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -304,7 +304,7 @@ love_test_2 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = 
 love.plot(love_test_2) 
 
 #Imputed Data 3
-love_test_3 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_3, 
+love_test_3 = matchit(drinker ~ age + bmi + gender + race + martstat + age:martstat + bmi:martstat + bmi:race + race:martstat, data = imputed_data_3, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -315,7 +315,7 @@ love_test_3 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = 
 love.plot(love_test_3) 
 
 #Imputed Data 4
-love_test_4 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_4, 
+love_test_4 = matchit(drinker ~ age + bmi + gender + race + martstat + age:martstat + bmi:martstat + bmi:race + race:martstat, data = imputed_data_4, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -326,7 +326,7 @@ love_test_4 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = 
 love.plot(love_test_4) 
 
 #Imputed Data 5
-love_test_5 = matchit(drinker ~  age + bmi + gender + race + bmi:gender, data = imputed_data_5, 
+love_test_5 = matchit(drinker ~ age + bmi + gender + race + martstat + age:martstat + bmi:martstat + bmi:race + race:martstat, data = imputed_data_5, 
                  method = "full", 
                  replace=TRUE, discard = "both",
                 exact=c("gender", "martstat", "race"),
@@ -359,11 +359,12 @@ weight_plot2 = thesis_data_clean %>%
   mutate (stand_weight =
            ((prop_score[[3]])*(stan_nhanes_weights))
           ) %>%
-  filter(stand_weight < 5)
+ mutate(weight_trunc = pmin(pmax(stand_weight, quantile(stand_weight, .00)), 
+                                          quantile(stand_weight, .99)))
 
-  summary(weight_plot2$stand_weight)
+  summary(weight_plot2$weight_trunc)
 
-  ggplot(data = weight_plot2, aes(x=stand_weight,y=seqn))+
+  ggplot(data = weight_plot2, aes(x=weight_trunc,y=seqn))+
   geom_point()+
   labs(
     title = "Truncated Balance of Propensity Score Weight times Standardized NHANES Weights",
@@ -372,26 +373,22 @@ weight_plot2 = thesis_data_clean %>%
   )
 ```
 
-# Truncate Imputed Data
-
-```{r}
-truncate_fun = function(t) {
-truncate_fun_1 = function(p){
-  truncated_data = t %>%
-    filter((p*((nhanes_weights)/mean(nhanes_weights))) < 5)
-}
-trunc_step_1 = lapply(prop_score, truncate_fun_1)
-}
-
-imputed_data_all = lapply(imputed_data_all, truncate_fun)
-```
 
 
 # GLM using weights for the outcome model with drinker, for each imputed data set. Included variables from stepAIC and any other variables that logically should be included.
 ```{r}
+
+
 outcome_fun = function(z){
 outcome_fun_1 = function(y) {
-outcome_lm_1 = glm(apnea ~ bmi + age + gender + race + martstat + drinker + martstat:drinker, family = quasibinomial(), data=z, weights= (y*(nhanes_weights)/mean(nhanes_weights)))
+z = z %>%
+  mutate (stand_weight =
+           ((y)*(stan_nhanes_weights))
+          ) %>%
+ mutate(weight_trunc = pmin(pmax(stand_weight, quantile(stand_weight, .00)), 
+                                          quantile(stand_weight, .99)))
+
+outcome_lm_1 = glm(apnea ~ bmi + age + gender + race + martstat + drinker + gender:martstat, family = quasibinomial(), data=z, weights= (y*((nhanes_weights)/mean(nhanes_weights))))
 }
 
 outcome_1 = lapply(prop_score, outcome_fun_1)
@@ -431,8 +428,16 @@ prop_score_binge = lapply (binge_data_all, pscore_binge)
 #outcomes with binge drinking
 outcome_fun_binge = function(z){
 outcome_fun_binge = function(y) {
+  
+  z = z %>%
+  mutate (stand_weight =
+           ((y)*(stan_nhanes_weights))
+          ) %>%
+ mutate(weight_trunc = pmin(pmax(stand_weight, quantile(stand_weight, .00)), 
+                                          quantile(stand_weight, .99)))
+  
 outcome_lm_binge =
-  glm(apnea ~ age + bmi + race + martstat + gender + binge_drinker + bmi:race, family = quasibinomial(), data=z, weights= (y*(nhanes_weights)/mean(nhanes_weights)))
+  glm(apnea ~ age + bmi + race + martstat + gender + binge_drinker + bmi:race, family = quasibinomial(), data=z, weights= (y*((nhanes_weights)/mean(nhanes_weights))))
 }
 
 outcome_1 = lapply(prop_score_binge, outcome_fun_binge)
